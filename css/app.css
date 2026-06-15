@@ -1681,21 +1681,18 @@ tbody tr:hover td { background: var(--row-hover); }
   }
 
   body.is-printing-personal .personal-table {
-    width: max-content;
-    min-width: 100%;
-    font-size: 6.5pt;
-    table-layout: auto;
+    width: 100%;
+    min-width: 0;
+    font-size: 7.5pt;
+    table-layout: fixed;
   }
 
   body.is-printing-personal .personal-table thead th {
     position: static;
-    padding: 3pt 5pt;
-    font-size: 6.5pt;
-    white-space: nowrap;
-    word-wrap: normal;
-    overflow-wrap: normal;
-    word-break: keep-all;
-    hyphens: none;
+    padding: 4pt 3pt;
+    font-size: 7pt;
+    white-space: normal;
+    word-wrap: break-word;
     background: #e2e8f0 !important;
     color: #0f172a !important;
     -webkit-print-color-adjust: exact;
@@ -1703,16 +1700,13 @@ tbody tr:hover td { background: var(--row-hover); }
   }
 
   body.is-printing-personal .personal-table tbody td {
-    padding: 2pt 5pt;
-    font-size: 6.5pt;
-    line-height: 1.2;
-    white-space: nowrap;
-    word-wrap: normal;
-    overflow-wrap: normal;
-    word-break: keep-all;
-    hyphens: none;
+    padding: 3pt;
+    font-size: 7.5pt;
+    line-height: 1.25;
+    white-space: normal;
+    word-wrap: break-word;
     overflow: visible;
-    vertical-align: middle;
+    vertical-align: top;
     background: #fff !important;
     color: #0f172a !important;
     border-bottom: 0.5pt solid #cbd5e1;
