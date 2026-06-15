@@ -310,6 +310,7 @@ function updateAuthUI() {
 
   if (typeof LicenciasModule !== 'undefined') LicenciasModule.setEditMode(canEdit());
   if (typeof PersonalModule !== 'undefined') PersonalModule.setEditMode(isAdminUser());
+  if (typeof LaboratoriosModule !== 'undefined') LaboratoriosModule.setEditMode(canEdit());
   if (typeof AdminModule !== 'undefined') AdminModule.refresh();
   if (typeof DashboardModule !== 'undefined' && currentView === 'dashboard') DashboardModule.render();
 }

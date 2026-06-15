@@ -178,9 +178,10 @@
         <div class="view-toolbar__actions">
           <button type="button" class="btn btn-secondary" onclick="ExportPrint.print('laboratorios')"><i class="ti ti-printer"></i> Imprimir</button>
           <button type="button" class="btn btn-secondary" onclick="ExportPrint.exportCsv('laboratorios')"><i class="ti ti-download"></i> Exportar CSV</button>
+          <button type="button" class="btn btn-primary edit-only" onclick="LaboratoriosModule.openAdd()"><i class="ti ti-plus"></i> Nuevo estudio</button>
         </div>
       </div>
-      <p class="dashboard-lead">Registro y seguimiento de estudios de laboratorio.</p>
+      <p class="dashboard-lead">Registro y seguimiento de estudios de laboratorio. Con sesión de administrador podés agregar y editar registros.</p>
       <div class="filter-bar">
         <div class="search-wrap"><i class="ti ti-search"></i><input type="text" id="labSearch" placeholder="Buscar interno o estudio…" /></div>
         <select id="labFilterEstado"><option value="">Todos los estados</option><option value="pendiente">Pendiente</option><option value="en_proceso">En proceso</option><option value="informado">Informado</option></select>
@@ -190,7 +191,7 @@
           <table>
             <thead>
               <tr>
-                <th>Interno</th><th>Estudio</th><th>Solicitud</th><th>Médico solicitante</th><th>Estado</th>
+                <th>Interno</th><th>Estudio</th><th>Solicitud</th><th>Médico solicitante</th><th>Estado</th><th class="col-act edit-only hidden"></th>
               </tr>
             </thead>
             <tbody id="labTbody"></tbody>
@@ -497,6 +498,31 @@
     <div class="modal-footer">
       <button type="button" class="btn btn-secondary" onclick="PersonalModule.closeModal()">Cancelar</button>
       <button type="button" class="btn btn-primary" onclick="PersonalModule.saveEntry()"><i class="ti ti-device-floppy"></i> Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="labModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="labModalTitle">Nuevo estudio de laboratorio</h2>
+      <button type="button" class="modal-close" onclick="LaboratoriosModule.closeModal()" aria-label="Cerrar"><i class="ti ti-x"></i></button>
+    </div>
+    <p class="form-section">Interno y estudio</p>
+    <div class="form-row"><label for="labInterno">Interno</label><input type="text" id="labInterno" placeholder="Ej: Interno A-042" /></div>
+    <div class="form-row"><label for="labEstudio">Estudio</label><input type="text" id="labEstudio" placeholder="Ej: Hemograma completo" /></div>
+    <p class="form-section">Solicitud</p>
+    <div class="form-grid">
+      <div class="form-row"><label for="labSolicitud">Fecha de solicitud</label><input type="date" id="labSolicitud" /></div>
+      <div class="form-row"><label for="labMedico">Médico solicitante</label><input type="text" id="labMedico" placeholder="Apellido y nombre" /></div>
+    </div>
+    <p class="form-section">Estado</p>
+    <div class="form-row"><label for="labEstado">Estado</label><select id="labEstado"><option value="pendiente">Pendiente</option><option value="en_proceso">En proceso</option><option value="informado">Informado</option></select></div>
+    <div class="form-row"><label for="labNotas">Observaciones</label><textarea id="labNotas" rows="2" placeholder="Notas opcionales"></textarea></div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-danger edit-only admin-edit-btn hidden" id="labBtnDelete" onclick="LaboratoriosModule.deleteEntry()" style="margin-right:auto"><i class="ti ti-trash"></i> Eliminar</button>
+      <button type="button" class="btn btn-secondary" onclick="LaboratoriosModule.closeModal()">Cancelar</button>
+      <button type="button" class="btn btn-primary edit-only admin-edit-btn" onclick="LaboratoriosModule.saveEntry()"><i class="ti ti-device-floppy"></i> Guardar</button>
     </div>
   </div>
 </div>
