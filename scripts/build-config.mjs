@@ -11,12 +11,11 @@ const url = process.env.SUPABASE_URL?.trim();
 const key = process.env.SUPABASE_ANON_KEY?.trim();
 
 if (!url || !key) {
-  console.error(
-    '[build-config] Faltan SUPABASE_URL y/o SUPABASE_ANON_KEY.\n' +
-    '  Vercel: Project Settings → Environment Variables\n' +
-    '  Local:  .env o export manual antes de npm run build'
+  console.warn(
+    '[build-config] Faltan SUPABASE_URL y/o SUPABASE_ANON_KEY — omitiendo generación local.\n' +
+    '  En Vercel la config se sirve desde /api/config (no hace falta este build).'
   );
-  process.exit(1);
+  process.exit(0);
 }
 
 const content = `/* Generado en build — no editar a mano en producción */
