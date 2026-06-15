@@ -77,6 +77,7 @@ const ExportPrint = (() => {
 
   function patologiasRows() {
     const rows = [['Patología', 'Cantidad / Interno']];
+    rows.push(['Población', appData.poblacion ?? 974]);
     GRUPO_KEYS.forEach(key => {
       const g = appData.patologiasGrupos?.[key];
       if (!g) return;

@@ -343,7 +343,46 @@ const AdminModule = (() => {
 
 
 
+  function renderPoblacion() {
+    const el = document.getElementById('pathologyPoblacion');
+    if (!el) return;
+    const val = appData.poblacion ?? 974;
+    const editable = typeof canEditPatologias === 'function' ? canEditPatologias() : false;
+    el.innerHTML = editable
+      ? `<div class="pathology-poblacion pathology-poblacion--edit">
+          <span class="pathology-poblacion__label">POBLACIÓN:</span>
+          <input type="number" min="0" class="pathology-poblacion__input" value="${val}"
+            onchange="AdminModule.updatePoblacion(this.value)" aria-label="Población" />
+        </div>`
+      : `<div class="pathology-poblacion">
+          <span class="pathology-poblacion__label">POBLACIÓN:</span>
+          <strong class="pathology-poblacion__value">${val}</strong>
+        </div>`;
+  }
+
+  function updatePoblacion(value) {
+    if (typeof canEditPatologias === 'function' ? !canEditPatologias() : !canEdit()) return;
+    const oldVal = appData.poblacion ?? 974;
+    const newVal = Math.max(0, parseInt(value, 10) || 0);
+    if (oldVal === newVal) return;
+    appData.poblacion = newVal;
+    saveData();
+    if (typeof logAudit === 'function') {
+      logAudit({
+        modulo: 'Patologías',
+        tabla: 'patologias',
+        accion: 'UPDATE',
+        registroId: 'poblacion',
+        detalle: `Se modificó la población de ${oldVal} a ${newVal}`,
+      });
+    }
+    renderPoblacion();
+    if (typeof showToast === 'function') showToast('Población actualizada', 'success');
+  }
+
   function renderPatologias() {
+
+    renderPoblacion();
 
     renderPriorityGrupos();
 
@@ -960,7 +999,7 @@ const AdminModule = (() => {
 
   return {
 
-    renderPatologias, updatePatologia, addInternoGrupo, removeInternoGrupo, renderTrimestral, selectQuarter,
+    renderPatologias, updatePatologia, updatePoblacion, addInternoGrupo, removeInternoGrupo, renderTrimestral, selectQuarter,
 
     updateTrimestral, renderTurnos, openTurnoAdd, openTurnoEdit,
 

@@ -724,6 +724,70 @@ button { cursor: pointer; border: none; font-size: 13px; transition: var(--trans
   font-weight: 600;
 }
 
+/* Pathology — población */
+.pathology-poblacion-wrap {
+  margin-bottom: 10px;
+}
+
+.pathology-poblacion {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--blue-900);
+  background: linear-gradient(180deg, #f0f9fc 0%, var(--bg-page) 100%);
+  border: 1px solid rgba(2, 118, 188, 0.35);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 1px 4px rgba(2, 118, 188, 0.08);
+}
+
+.pathology-poblacion__label {
+  color: var(--navy-800);
+  opacity: 0.9;
+}
+
+.pathology-poblacion__value {
+  font-family: var(--font-metric);
+  font-size: 13px;
+  color: #0276BC;
+}
+
+.pathology-poblacion__input {
+  width: 4.2em;
+  padding: 2px 6px;
+  font-family: var(--font-metric);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  color: #0276BC;
+  border: 1px solid rgba(2, 118, 188, 0.3);
+  border-radius: 4px;
+  background: #fff;
+}
+
+.pathology-poblacion__input:focus {
+  outline: none;
+  border-color: var(--color-action);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+[data-theme="dark"] .pathology-poblacion {
+  background: linear-gradient(180deg, #1e293b 0%, var(--bg-page) 100%);
+  border-color: rgba(56, 189, 248, 0.25);
+}
+
+[data-theme="dark"] .pathology-poblacion__value,
+[data-theme="dark"] .pathology-poblacion__input {
+  color: #38bdf8;
+}
+
+[data-theme="dark"] .pathology-poblacion__input {
+  background: #0f172a;
+}
+
 /* Pathology — paneles prioritarios desplegables */
 .pathology-priority {
   display: grid;

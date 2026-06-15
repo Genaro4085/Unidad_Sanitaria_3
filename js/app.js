@@ -27,6 +27,7 @@ const DEFAULT_DATA = {
     vacunados: 1,
     tiroides: 1
   },
+  poblacion: 974,
   patologiasGrupos: {
     controlAltaComplejidad: {
       label: 'Control diario alta complejidad',
