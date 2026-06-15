@@ -496,7 +496,8 @@ document.addEventListener('DOMContentLoaded', () => {
   updateWeather();
   setInterval(updateWeather, 30 * 60 * 1000);
 
-  navigate('dashboard');
+  const startView = new URLSearchParams(location.search).get('view');
+  navigate(startView && VIEW_TITLES[startView] ? startView : 'dashboard');
 
   if (typeof SupabaseClient !== 'undefined') {
     SupabaseClient.ping().then(status => {

@@ -2,7 +2,11 @@
   "name": "plataforma-us3",
   "private": true,
   "scripts": {
-    "build": "node scripts/build-config.mjs",
+    "build": "node scripts/build-config.mjs && node scripts/generate-pwa-icons.mjs && node scripts/stamp-sw.mjs",
+    "pwa:icons": "node scripts/generate-pwa-icons.mjs",
     "dev": "npx serve -l 8080"
+  },
+  "devDependencies": {
+    "sharp": "^0.33.5"
   }
 }
