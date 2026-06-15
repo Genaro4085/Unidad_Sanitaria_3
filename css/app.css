@@ -1667,6 +1667,84 @@ tbody tr:hover td { background: var(--row-hover); }
   @page {
     margin: 1.2cm;
   }
+
+  body.is-printing-personal .admin-subnav,
+  body.is-printing-personal .stats-grid,
+  body.is-printing-personal .dashboard-lead,
+  body.is-printing-personal .audit-notice {
+    display: none !important;
+  }
+
+  body.is-printing-personal .personal-table-wrap {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  body.is-printing-personal .personal-table {
+    width: 100%;
+    min-width: 0;
+    font-size: 7.5pt;
+    table-layout: fixed;
+  }
+
+  body.is-printing-personal .personal-table thead th {
+    position: static;
+    padding: 4pt 3pt;
+    font-size: 7pt;
+    white-space: normal;
+    word-wrap: break-word;
+    background: #e2e8f0 !important;
+    color: #0f172a !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body.is-printing-personal .personal-table tbody td {
+    padding: 3pt;
+    font-size: 7.5pt;
+    line-height: 1.25;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow: visible;
+    vertical-align: top;
+    background: #fff !important;
+    color: #0f172a !important;
+    border-bottom: 0.5pt solid #cbd5e1;
+  }
+
+  body.is-printing-personal .personal-table tbody tr:nth-child(even) td {
+    background: #f1f5f9 !important;
+  }
+
+  body.is-printing-personal .personal-table thead {
+    display: table-header-group;
+  }
+
+  body.is-printing-personal .personal-table tbody tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  body.is-printing-personal .table-card {
+    border: none !important;
+    padding: 0 !important;
+    break-inside: auto !important;
+  }
+
+  body.is-printing-personal .view.active::before {
+    content: 'Unidad Sanitaria N°3 — Padrón de personal sanitario';
+  }
+
+  body.is-printing-personal .personal-print-meta {
+    display: block !important;
+    font-size: 9pt;
+    color: #475569;
+    margin: 0 0 10pt;
+  }
+
+  body.is-printing-personal .filter-bar {
+    display: none !important;
+  }
 }
 
 /* ── Padrón personal (admin) ── */

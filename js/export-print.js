@@ -207,6 +207,15 @@ const ExportPrint = (() => {
     const el = document.getElementById('view-' + v);
     if (!el) return;
 
+    let personalPrepared = false;
+    if (v === 'personal' && typeof PersonalModule !== 'undefined' && PersonalModule.preparePrint) {
+      personalPrepared = PersonalModule.preparePrint();
+      if (!personalPrepared && typeof showToast === 'function') {
+        showToast('El padrón aún no terminó de cargar', 'error');
+        return;
+      }
+    }
+
     const titleEl = el.querySelector('.view-title');
     const when = stamp();
     if (titleEl) titleEl.setAttribute('data-print-date', when);
@@ -216,6 +225,9 @@ const ExportPrint = (() => {
     document.title = `${VIEW_TITLES[v] || v} — Unidad Sanitaria N°3`;
 
     const done = () => {
+      if (personalPrepared && typeof PersonalModule !== 'undefined' && PersonalModule.restoreAfterPrint) {
+        PersonalModule.restoreAfterPrint();
+      }
       document.body.classList.remove('is-printing');
       delete document.body.dataset.printView;
       document.title = 'Panel de Gestión — Unidad Sanitaria N°3';

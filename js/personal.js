@@ -97,6 +97,65 @@ const PersonalModule = (() => {
     return val ? `<span class="personal-text">${esc(val)}</span>` : '<span class="text-muted">—</span>';
   }
 
+  function plainCell(key, row) {
+    if (key === 'fechaNacimiento') return esc(fmtDate(row[key]));
+    const val = row[key];
+    return val ? esc(String(val)) : '—';
+  }
+
+  function renderTablePlain(list) {
+    const tbody = document.getElementById('personalTbody');
+    if (!tbody) return;
+    tbody.innerHTML = list.map(r => `
+      <tr>
+        ${COLS.map(c => `<td class="personal-col personal-col--${c.key}">${plainCell(c.key, r)}</td>`).join('')}
+      </tr>`).join('');
+  }
+
+  let printSnapshot = null;
+
+  function preparePrint() {
+    const tbody = document.getElementById('personalTbody');
+    if (!tbody || !rows.length) return false;
+    printSnapshot = {
+      search: document.getElementById('personalSearch')?.value || '',
+      tbody: tbody.innerHTML,
+      count: document.getElementById('personalCount')?.textContent || '',
+    };
+    renderTablePlain(rows);
+    const countEl = document.getElementById('personalCount');
+    if (countEl) countEl.textContent = `${rows.length} agentes (padrón completo)`;
+    const meta = document.getElementById('personalPrintMeta');
+    if (meta) {
+      meta.textContent = `Padrón completo — ${rows.length} agentes — Impreso ${new Date().toLocaleString('es-AR')}`;
+      meta.classList.remove('hidden');
+    }
+    const pageStyle = document.createElement('style');
+    pageStyle.id = 'personal-print-page';
+    pageStyle.textContent = '@media print { @page { size: A4 landscape; margin: 0.7cm; } }';
+    document.head.appendChild(pageStyle);
+    document.body.classList.add('is-printing-personal');
+    return true;
+  }
+
+  function restoreAfterPrint() {
+    document.body.classList.remove('is-printing-personal');
+    document.getElementById('personal-print-page')?.remove();
+    const meta = document.getElementById('personalPrintMeta');
+    if (meta) {
+      meta.textContent = '';
+      meta.classList.add('hidden');
+    }
+    if (!printSnapshot) return;
+    const tbody = document.getElementById('personalTbody');
+    if (tbody) tbody.innerHTML = printSnapshot.tbody;
+    const search = document.getElementById('personalSearch');
+    if (search) search.value = printSnapshot.search;
+    const countEl = document.getElementById('personalCount');
+    if (countEl) countEl.textContent = printSnapshot.count;
+    printSnapshot = null;
+  }
+
   function getFiltered() {
     const q = (document.getElementById('personalSearch')?.value || '').trim().toLowerCase();
     if (!q) return rows.slice();
@@ -289,7 +348,7 @@ const PersonalModule = (() => {
 
   function getExportRows() {
     const headers = COLS.map(c => c.label);
-    const data = getFiltered().map(r => COLS.map(c => {
+    const data = rows.map(r => COLS.map(c => {
       if (c.key === 'fechaNacimiento') return fmtDate(r[c.key]).replace('—', '');
       return r[c.key] ?? '';
     }));
@@ -315,5 +374,5 @@ const PersonalModule = (() => {
     loadData();
   }
 
-  return { init, openEdit, closeModal, saveEntry, getExportRows, setEditMode };
+  return { init, openEdit, closeModal, saveEntry, getExportRows, setEditMode, preparePrint, restoreAfterPrint };
 })();

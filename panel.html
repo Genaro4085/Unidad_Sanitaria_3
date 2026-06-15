@@ -295,11 +295,12 @@
       <div class="view-toolbar no-print">
         <p class="audit-notice"><i class="ti ti-lock"></i> Solo administrador — padrón completo US3</p>
         <div class="view-toolbar__actions">
-          <button type="button" class="btn btn-secondary" onclick="ExportPrint.print('personal')"><i class="ti ti-printer"></i> Imprimir</button>
+          <button type="button" class="btn btn-secondary" onclick="ExportPrint.print('personal')" title="Imprime todos los agentes con todas las columnas"><i class="ti ti-printer"></i> Imprimir padrón completo</button>
           <button type="button" class="btn btn-secondary" onclick="ExportPrint.exportCsv('personal')"><i class="ti ti-download"></i> Exportar CSV</button>
         </div>
       </div>
       <p class="dashboard-lead">Listado del personal sanitario. Con sesión de administrador podés editar cada registro desde el ícono <i class="ti ti-edit"></i>.</p>
+      <p class="personal-print-meta no-print hidden" id="personalPrintMeta"></p>
       <p class="hint edit-only hidden" id="personalEditHint" style="margin-top:-8px;margin-bottom:12px"><i class="ti ti-pencil"></i> Modo edición activo — los cambios se guardan en Supabase automáticamente.</p>
       <div class="stats-grid" id="personalStats"></div>
       <div class="filter-bar">
