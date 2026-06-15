@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Licencias y Vacaciones 2026</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg-secondary: #f8f7f4;
+    --bg-tertiary: #f1efe8;
+    --text-primary: #1a1a18;
+    --text-secondary: #5f5e5a;
+    --text-hint: #888780;
+    --border: rgba(0,0,0,0.10);
+    --border-med: rgba(0,0,0,0.18);
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+    --green-bg: #eaf3de; --green-text: #3b6d11;
+    --amber-bg: #faeeda; --amber-text: #854f0b;
+    --blue-bg: #e6f1fb; --blue-text: #185fa5;
+    --gray-bg: #f1efe8; --gray-text: #5f5e5a;
+    --tramo1-bg: #eeedfe; --tramo1-text: #3c3489;
+    --tramo2-bg: #e1f5ee; --tramo2-text: #0f6e56;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a;
+      --bg-secondary: #252523;
+      --bg-tertiary: #2e2e2b;
+      --text-primary: #f0ede8;
+      --text-secondary: #a8a69f;
+      --text-hint: #6e6d69;
+      --border: rgba(255,255,255,0.10);
+      --border-med: rgba(255,255,255,0.18);
+
+      --green-bg: #173404; --green-text: #c0dd97;
+      --amber-bg: #412402; --amber-text: #fac775;
+      --blue-bg: #042c53; --blue-text: #b5d4f4;
+      --gray-bg: #2c2c2a; --gray-text: #d3d1c7;
+      --tramo1-bg: #26215c; --tramo1-text: #cecbf6;
+      --tramo2-bg: #04342c; --tramo2-text: #9fe1cb;
+    }
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .page { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 3rem; }
+
+  /* ── Header ── */
+  .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 1.75rem; }
+  .header-left {}
+  .page-title { font-size: 20px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.3px; }
+  .page-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
+  .header-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+  /* ── Buttons ── */
+  button { font-family: var(--font); cursor: pointer; font-size: 13px; border-radius: var(--radius-md); transition: opacity .15s, background .15s; }
+  .btn-primary {
+    background: var(--text-primary); color: var(--bg);
+    border: none; padding: 8px 16px;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-weight: 500;
+  }
+  .btn-primary:hover { opacity: .82; }
+  .btn-secondary {
+    background: transparent; color: var(--text-secondary);
+    border: 0.5px solid var(--border-med); padding: 8px 14px;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-secondary:hover { background: var(--bg-secondary); }
+
+  /* ── Stat cards ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+  .stat-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px 12px;
+    border: 0.5px solid var(--border);
+  }
+  .stat-icon { font-size: 18px; color: var(--text-hint); margin-bottom: 6px; display: block; }
+  .stat-label { font-size: 12px; color: var(--text-secondary); }
+  .stat-value { font-size: 26px; font-weight: 600; color: var(--text-primary); line-height: 1.1; margin-top: 2px; }
+
+  /* ── Filter bar ── */
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+  .search-wrap { position: relative; flex: 1; min-width: 180px; }
+  .search-wrap .ti { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--text-hint); pointer-events: none; }
+  .filter-bar input[type="text"] {
+    font-family: var(--font); font-size: 13px;
+    border: 0.5px solid var(--border-med); border-radius: var(--radius-md);
+    background: var(--bg); color: var(--text-primary);
+    padding: 8px 10px 8px 34px; width: 100%;
+    outline: none;
+  }
+  .filter-bar input[type="text"]:focus { border-color: rgba(0,0,0,0.35); box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
+  .filter-bar select {
+    font-family: var(--font); font-size: 13px;
+    border: 0.5px solid var(--border-med); border-radius: var(--radius-md);
+    background: var(--bg); color: var(--text-primary);
+    padding: 8px 28px 8px 10px;
+    -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 8px center;
+    outline: none; cursor: pointer;
+  }
+  .filter-bar select:focus { border-color: rgba(0,0,0,0.35); }
+
+  /* ── Table ── */
+  .table-card {
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+  }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead { background: var(--bg-secondary); }
+  th {
+    text-align: left; padding: 10px 14px;
+    font-weight: 500; font-size: 11px; letter-spacing: .5px; text-transform: uppercase;
+    color: var(--text-hint);
+    border-bottom: 0.5px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 11px 14px;
+    border-bottom: 0.5px solid var(--border);
+    color: var(--text-primary);
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--bg-secondary); }
+
+  .col-agent { min-width: 160px; }
+  .col-tramo { width: 100px; }
+  .col-date  { width: 90px; }
+  .col-days  { width: 80px; text-align: center; }
+  .col-state { width: 120px; }
+  .col-act   { width: 44px; }
+
+  /* Agent cell */
+  .agent-cell { display: flex; align-items: center; gap: 10px; }
+  .avatar {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 600; letter-spacing: .5px;
+  }
+  .agent-name { font-weight: 500; font-size: 13px; }
+
+  /* Badges */
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+  .badge-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .badge-ok   { background: var(--green-bg); color: var(--green-text); }
+  .badge-ok .badge-dot   { background: var(--green-text); }
+  .badge-warn { background: var(--amber-bg); color: var(--amber-text); }
+  .badge-warn .badge-dot { background: var(--amber-text); }
+  .badge-done { background: var(--blue-bg);  color: var(--blue-text); }
+  .badge-done .badge-dot { background: var(--blue-text); }
+  .badge-pend { background: var(--gray-bg);  color: var(--gray-text); }
+  .badge-pend .badge-dot { background: var(--gray-text); }
+
+  .tramo-pill {
+    display: inline-block; padding: 2px 8px; border-radius: 99px;
+    font-size: 11px; font-weight: 500;
+  }
+  .tramo-1 { background: var(--tramo1-bg); color: var(--tramo1-text); }
+  .tramo-2 { background: var(--tramo2-bg); color: var(--tramo2-text); }
+
+  .date-text { font-size: 12px; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+  .days-num { font-size: 13px; font-weight: 500; text-align: center; display: block; }
+  .days-zero { color: var(--text-hint); }
+
+  /* Edit button */
+  .edit-btn {
+    background: none; border: none; color: var(--text-hint);
+    cursor: pointer; padding: 5px 7px; border-radius: var(--radius-sm);
+    font-size: 16px; display: inline-flex; align-items: center;
+    transition: background .15s, color .15s;
+  }
+  .edit-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+  /* No data */
+  .no-data { padding: 2.5rem; text-align: center; color: var(--text-secondary); font-size: 13px; }
+  .no-data .ti { font-size: 28px; display: block; margin: 0 auto 8px; color: var(--text-hint); }
+
+  /* Footer hint */
+  .hint { font-size: 12px; color: var(--text-hint); margin-top: 12px; display: flex; align-items: center; gap: 6px; }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.45); z-index: 200;
+    align-items: center; justify-content: center;
+    padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--bg); border: 0.5px solid var(--border-med);
+    border-radius: var(--radius-xl); padding: 1.75rem;
+    width: 460px; max-width: 100%; max-height: 90vh;
+    overflow-y: auto; position: relative;
+  }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+  .modal-title { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+  .modal-close { background: none; border: none; font-size: 20px; color: var(--text-hint); cursor: pointer; padding: 2px 4px; border-radius: var(--radius-sm); line-height: 1; }
+  .modal-close:hover { background: var(--bg-secondary); color: var(--text-primary); }
+
+  .form-section { font-size: 11px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--text-hint); margin: 1.25rem 0 .75rem; border-top: 0.5px solid var(--border); padding-top: .75rem; }
+  .form-section:first-of-type { margin-top: 0; border-top: none; padding-top: 0; }
+
+  .form-row { margin-bottom: 12px; }
+  .form-row label { font-size: 12px; color: var(--text-secondary); font-weight: 500; display: block; margin-bottom: 5px; }
+  .form-row input, .form-row select {
+    width: 100%; font-family: var(--font); font-size: 13px;
+    border: 0.5px solid var(--border-med); border-radius: var(--radius-md);
+    background: var(--bg); color: var(--text-primary);
+    padding: 8px 10px; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .form-row input:focus, .form-row select:focus { border-color: rgba(0,0,0,.35); box-shadow: 0 0 0 3px rgba(0,0,0,.06); }
+  .form-row input:disabled { background: var(--bg-secondary); color: var(--text-hint); cursor: not-allowed; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.5rem; border-top: 0.5px solid var(--border); padding-top: 1.25rem; }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="header">
+    <div class="header-left">
+      <h1 class="page-title">Licencias y vacaciones 2026</h1>
+      <p class="page-subtitle">Guardias médicas — registrarse con anticipación para evitar superposiciones</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary" onclick="exportCSV()">
+        <i class="ti ti-download" aria-hidden="true"></i> Exportar CSV
+      </button>
+      <button class="btn-primary" onclick="openAdd()">
+        <i class="ti ti-plus" aria-hidden="true"></i> Agregar tramo
+      </button>
+    </div>
+  </div>
+
+  <div class="stats-grid" id="stats"></div>
+
+  <div class="filter-bar">
+    <div class="search-wrap">
+      <i class="ti ti-search" aria-hidden="true"></i>
+      <input type="text" id="search" placeholder="Buscar agente…" oninput="renderTable()" />
+    </div>
+    <select id="filterTramo" onchange="renderTable()">
+      <option value="">Todos los tramos</option>
+      <option value="1">Tramo 1</option>
+      <option value="2">Tramo 2</option>
+    </select>
+    <select id="filterEstado" onchange="renderTable()">
+      <option value="">Todos los estados</option>
+      <option value="confirmado">Confirmado</option>
+      <option value="pendiente">Pendiente</option>
+      <option value="completado">Completado</option>
+    </select>
+  </div>
+
+  <div class="table-card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="col-agent">Agente</th>
+            <th class="col-tramo">Tramo</th>
+            <th class="col-date">Desde</th>
+            <th class="col-date">Hasta</th>
+            <th class="col-days">Tomados</th>
+            <th class="col-days">Restantes</th>
+            <th class="col-state">Estado</th>
+            <th class="col-act"></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="no-data" id="nodata" style="display:none">
+        <i class="ti ti-search-off" aria-hidden="true"></i>
+        No hay registros que coincidan con el filtro.
+      </div>
+    </div>
+  </div>
+
+  <p class="hint">
+    <i class="ti ti-info-circle" aria-hidden="true"></i>
+    Hacé clic en <i class="ti ti-edit" aria-hidden="true" style="font-size:13px"></i> para editar o agregar un segundo tramo a un agente.
+  </p>
+
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modalTitle">Agregar tramo de licencia</h2>
+      <button class="modal-close" onclick="closeModal()" aria-label="Cerrar"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+
+    <input type="hidden" id="editId" />
+    <input type="hidden" id="editTramo" />
+
+    <p class="form-section">Agente</p>
+    <div class="form-row">
+      <label for="fNombre">Apellido y nombre</label>
+      <input type="text" id="fNombre" placeholder="Ej: González María" />
+    </div>
+    <div class="form-row">
+      <label for="fTramo">Tramo</label>
+      <select id="fTramo">
+        <option value="1">Tramo 1</option>
+        <option value="2">Tramo 2</option>
+      </select>
+    </div>
+
+    <p class="form-section">Fechas</p>
+    <div class="form-grid">
+      <div class="form-row">
+        <label for="fDesde">Desde</label>
+        <input type="date" id="fDesde" oninput="calcDias()" />
+      </div>
+      <div class="form-row">
+        <label for="fHasta">Hasta</label>
+        <input type="date" id="fHasta" oninput="calcDias()" />
+      </div>
+    </div>
+
+    <p class="form-section">Días</p>
+    <div class="form-grid">
+      <div class="form-row">
+        <label for="fTomados">Días tomados</label>
+        <input type="number" id="fTomados" min="0" placeholder="0" />
+      </div>
+      <div class="form-row">
+        <label for="fRestan">Días restantes</label>
+        <input type="number" id="fRestan" min="0" placeholder="0" />
+      </div>
+    </div>
+
+    <p class="form-section">Estado y notas</p>
+    <div class="form-row">
+      <label for="fEstado">Estado</label>
+      <select id="fEstado">
+        <option value="confirmado">Confirmado</option>
+        <option value="pendiente">Pendiente</option>
+        <option value="completado">Completado</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label for="fNotas">Notas</label>
+      <input type="text" id="fNotas" placeholder="Observaciones opcionales…" />
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn-primary" onclick="saveEntry()">
+        <i class="ti ti-device-floppy" aria-hidden="true"></i> Guardar
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TOTAL_DIAS = 30;
+
+const AVATAR_COLORS = [
+  {bg:'#eeedfe',text:'#3c3489'},{bg:'#e1f5ee',text:'#0f6e56'},
+  {bg:'#faeeda',text:'#854f0b'},{bg:'#e6f1fb',text:'#185fa5'},
+  {bg:'#eaf3de',text:'#3b6d11'},{bg:'#fbeaf0',text:'#72243e'},
+  {bg:'#faece7',text:'#993c1d'},{bg:'#f1efe8',text:'#5f5e5a'},
+];
+
+function avatarColor(name) {
+  let h = 0;
+  for (let i=0; i<name.length; i++) h = (h*31 + name.charCodeAt(i)) & 0xffff;
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
+
+function initials(name) {
+  const p = name.trim().split(/\s+/);
+  return (p[0]?.[0]||'') + (p[1]?.[0]||'');
+}
+
+let data = [
+  {id:1, nombre:'Lespiaucq Paula', tramo:1, desde:'2026-01-19', hasta:'2026-02-02', tomados:11, restan:19, estado:'confirmado', notas:''},
+  {id:2, nombre:'De la Barra Sandra', tramo:1, desde:'2026-02-03', hasta:'2026-02-23', tomados:13, restan:17, estado:'confirmado', notas:''},
+  {id:3, nombre:'De la Barra Sandra', tramo:2, desde:'2026-07-06', hasta:'2026-07-20', tomados:10, restan:7, estado:'confirmado', notas:''},
+  {id:4, nombre:'Montenegro Walter', tramo:1, desde:'2026-01-19', hasta:'2026-01-30', tomados:10, restan:20, estado:'confirmado', notas:''},
+  {id:5, nombre:'Zalazar Ariel', tramo:1, desde:'2026-02-17', hasta:'2026-03-02', tomados:10, restan:15, estado:'confirmado', notas:''},
+  {id:6, nombre:'Giachini Juan', tramo:1, desde:'2026-01-14', hasta:'2026-01-27', tomados:10, restan:20, estado:'confirmado', notas:''},
+  {id:7, nombre:'Rovera Matias', tramo:1, desde:'2026-02-12', hasta:'2026-02-25', tomados:8, restan:22, estado:'confirmado', notas:''},
+  {id:8, nombre:'Rovera Matias', tramo:2, desde:'2026-07-08', hasta:'2026-07-22', tomados:10, restan:12, estado:'confirmado', notas:''},
+  {id:9, nombre:'Bigolin Lorena', tramo:1, desde:'', hasta:'', tomados:0, restan:0, estado:'pendiente', notas:''},
+  {id:10, nombre:'Rodriguez Andres', tramo:1, desde:'2026-05-31', hasta:'2026-06-04', tomados:5, restan:10, estado:'confirmado', notas:''},
+  {id:11, nombre:'Rodriguez Andres', tramo:2, desde:'2026-10-25', hasta:'2026-11-09', tomados:10, restan:0, estado:'confirmado', notas:''},
+  {id:12, nombre:'Zabala Roberto', tramo:1, desde:'2026-03-18', hasta:'2026-03-31', tomados:8, restan:22, estado:'confirmado', notas:''},
+  {id:13, nombre:'Solis Javier', tramo:1, desde:'2026-02-13', hasta:'2026-03-09', tomados:15, restan:15, estado:'confirmado', notas:''},
+  {id:14, nombre:'Berdun Gonzalo', tramo:1, desde:'', hasta:'', tomados:0, restan:0, estado:'pendiente', notas:''},
+  {id:15, nombre:'Arroyo Romina', tramo:1, desde:'2026-02-03', hasta:'2026-02-23', tomados:0, restan:0, estado:'pendiente', notas:''},
+  {id:16, nombre:'Bedetti Marina', tramo:1, desde:'2026-01-05', hasta:'2026-01-23', tomados:0, restan:0, estado:'pendiente', notas:''},
+  {id:17, nombre:'Salama Silvina', tramo:1, desde:'', hasta:'', tomados:0, restan:0, estado:'pendiente', notas:''},
+  {id:18, nombre:'Begino Monserrat', tramo:1, desde:'2026-02-18', hasta:'2026-03-09', tomados:0, restan:0, estado:'pendiente', notas:''},
+  {id:19, nombre:'Masuelli Soledad', tramo:1, desde:'2026-02-04', hasta:'2026-02-26', tomados:0, restan:0, estado:'pendiente', notas:''},
+  {id:20, nombre:'Carrera Lorena', tramo:1, desde:'2026-03-09', hasta:'2026-03-26', tomados:0, restan:0, estado:'pendiente', notas:''},
+  {id:21, nombre:'Pena Agustina', tramo:1, desde:'2026-03-20', hasta:'2026-04-15', tomados:0, restan:0, estado:'pendiente', notas:''},
+  {id:22, nombre:'Macarrone Marcelo', tramo:1, desde:'', hasta:'', tomados:0, restan:0, estado:'pendiente', notas:''},
+  {id:23, nombre:'Marcatelli Genoveva', tramo:1, desde:'2026-01-28', hasta:'2026-02-24', tomados:18, restan:12, estado:'confirmado', notas:''},
+  {id:24, nombre:'Bonaventura Franco', tramo:1, desde:'2026-03-30', hasta:'2026-04-13', tomados:9, restan:6, estado:'confirmado', notas:''},
+  {id:25, nombre:'Aluchon Agostina', tramo:1, desde:'2026-01-02', hasta:'2026-01-13', tomados:8, restan:7, estado:'confirmado', notas:''},
+  {id:26, nombre:'Aranda German', tramo:1, desde:'2026-02-02', hasta:'2026-02-23', tomados:14, restan:16, estado:'confirmado', notas:''},
+  {id:27, nombre:'Vergara Diego', tramo:1, desde:'2026-01-23', hasta:'2026-02-11', tomados:14, restan:16, estado:'confirmado', notas:''},
+  {id:28, nombre:'Rebechini Genaro', tramo:1, desde:'2026-01-30', hasta:'2026-02-12', tomados:10, restan:5, estado:'confirmado', notas:''},
+  {id:29, nombre:'Canevale Diego', tramo:1, desde:'', hasta:'', tomados:0, restan:0, estado:'pendiente', notas:''},
+];
+let nextId = 30;
+
+function fmt(dateStr) {
+  if (!dateStr) return '—';
+  const [,m,d] = dateStr.split('-');
+  return d + '/' + m;
+}
+
+function estadoBadge(e) {
+  const map = {
+    confirmado: ['badge-ok',  'Confirmado'],
+    pendiente:  ['badge-pend','Pendiente'],
+    completado: ['badge-done','Completado'],
+  };
+  const [cls, label] = map[e] || ['badge-pend', e];
+  return `<span class="badge ${cls}"><span class="badge-dot"></span>${label}</span>`;
+}
+
+function renderStats() {
+  const agentes = [...new Set(data.map(d => d.nombre))].length;
+  const confirmados = data.filter(d => d.estado === 'confirmado').length;
+  const pendientes  = data.filter(d => d.estado === 'pendiente').length;
+  const conSegundo  = [...new Set(data.filter(d => d.tramo === 2).map(d => d.nombre))].length;
+  const cards = [
+    { icon:'ti-users',        label:'Agentes',           val: agentes },
+    { icon:'ti-calendar-check',label:'Tramos confirmados', val: confirmados },
+    { icon:'ti-clock-pause',  label:'Pendientes',         val: pendientes },
+    { icon:'ti-layers-union', label:'Con 2.° tramo',      val: conSegundo },
+  ];
+  document.getElementById('stats').innerHTML = cards.map(c => `
+    <div class="stat-card">
+      <i class="ti ${c.icon} stat-icon" aria-hidden="true"></i>
+      <div class="stat-label">${c.label}</div>
+      <div class="stat-value">${c.val}</div>
+    </div>`).join('');
+}
+
+function renderTable() {
+  const q  = document.getElementById('search').value.toLowerCase();
+  const ft = document.getElementById('filterTramo').value;
+  const fe = document.getElementById('filterEstado').value;
+  let rows = data.filter(d => {
+    if (q  && !d.nombre.toLowerCase().includes(q)) return false;
+    if (ft && String(d.tramo) !== ft)               return false;
+    if (fe && d.estado !== fe)                       return false;
+    return true;
+  });
+  rows.sort((a,b) => a.nombre.localeCompare(b, 'es') || a.tramo - b.tramo);
+  const tbody = document.getElementById('tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '';
+    document.getElementById('nodata').style.display = 'block';
+    return;
+  }
+  document.getElementById('nodata').style.display = 'none';
+  tbody.innerHTML = rows.map(r => {
+    const av = avatarColor(r.nombre);
+    const ini = initials(r.nombre).toUpperCase();
+    const daysTaken = r.tomados ? `<span class="days-num">${r.tomados}</span>` : `<span class="days-num days-zero">—</span>`;
+    const daysLeft  = r.restan  ? `<span class="days-num">${r.restan}</span>`  : `<span class="days-num days-zero">—</span>`;
+    return `
+    <tr>
+      <td class="col-agent">
+        <div class="agent-cell">
+          <div class="avatar" style="background:${av.bg};color:${av.text}">${ini}</div>
+          <span class="agent-name">${r.nombre}</span>
+        </div>
+      </td>
+      <td class="col-tramo"><span class="tramo-pill tramo-${r.tramo}">Tramo ${r.tramo}</span></td>
+      <td class="col-date"><span class="date-text">${fmt(r.desde)}</span></td>
+      <td class="col-date"><span class="date-text">${fmt(r.hasta)}</span></td>
+      <td class="col-days">${daysTaken}</td>
+      <td class="col-days">${daysLeft}</td>
+      <td class="col-state">${estadoBadge(r.estado)}</td>
+      <td class="col-act">
+        <button class="edit-btn" onclick="openEdit(${r.id})" aria-label="Editar ${r.nombre}">
+          <i class="ti ti-edit" aria-hidden="true"></i>
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function calcDias() {
+  const d = document.getElementById('fDesde').value;
+  const h = document.getElementById('fHasta').value;
+  if (d && h) {
+    const diff = Math.round((new Date(h) - new Date(d)) / 86400000);
+    if (diff > 0) document.getElementById('fTomados').value = diff;
+  }
+}
+
+function openAdd() {
+  document.getElementById('editId').value = '';
+  document.getElementById('modalTitle').textContent = 'Agregar tramo de licencia';
+  ['fNombre','fDesde','fHasta','fTomados','fRestan','fNotas'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('fTramo').value = '1';
+  document.getElementById('fEstado').value = 'confirmado';
+  document.getElementById('fNombre').disabled = false;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('fNombre').focus();
+}
+
+function openEdit(id) {
+  const r = data.find(d => d.id === id);
+  if (!r) return;
+  document.getElementById('editId').value = id;
+  document.getElementById('modalTitle').textContent = 'Editar tramo de licencia';
+  document.getElementById('fNombre').value  = r.nombre;
+  document.getElementById('fNombre').disabled = false;
+  document.getElementById('fTramo').value   = r.tramo;
+  document.getElementById('fDesde').value   = r.desde || '';
+  document.getElementById('fHasta').value   = r.hasta || '';
+  document.getElementById('fTomados').value = r.tomados || '';
+  document.getElementById('fRestan').value  = r.restan != null ? r.restan : '';
+  document.getElementById('fEstado').value  = r.estado;
+  document.getElementById('fNotas').value   = r.notas || '';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+function saveEntry() {
+  const nombre  = document.getElementById('fNombre').value.trim();
+  if (!nombre) { alert('Ingresá el nombre del agente.'); return; }
+  const tramo   = parseInt(document.getElementById('fTramo').value);
+  const desde   = document.getElementById('fDesde').value;
+  const hasta   = document.getElementById('fHasta').value;
+  const tomados = parseInt(document.getElementById('fTomados').value) || 0;
+  const restan  = parseInt(document.getElementById('fRestan').value)  || 0;
+  const estado  = document.getElementById('fEstado').value;
+  const notas   = document.getElementById('fNotas').value.trim();
+  const id      = document.getElementById('editId').value;
+  if (id) {
+    const idx = data.findIndex(d => d.id === parseInt(id));
+    if (idx > -1) data[idx] = { id: parseInt(id), nombre, tramo, desde, hasta, tomados, restan, estado, notas };
+  } else {
+    data.push({ id: nextId++, nombre, tramo, desde, hasta, tomados, restan, estado, notas });
+  }
+  closeModal();
+  renderStats();
+  renderTable();
+}
+
+function exportCSV() {
+  const headers = ['Agente','Tramo','Desde','Hasta','Días tomados','Días restantes','Estado','Notas'];
+  const rows = data.map(r => [r.nombre, r.tramo, r.desde, r.hasta, r.tomados, r.restan, r.estado, r.notas]);
+  const csv = [headers, ...rows].map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
+  a.download = 'licencias_2026.csv';
+  a.click();
+}
+
+document.getElementById('modalOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+renderStats();
+renderTable();
+</script>
+</body>
+</html>

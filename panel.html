@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel de Gestión — Unidad Sanitaria N°3</title>
+  <script>
+    (function () {
+      if (sessionStorage.getItem('us3_portal_auth') !== 'true') {
+        window.location.replace('index.html');
+        return;
+      }
+      var t = localStorage.getItem('us3_theme');
+      if (t !== 'dark' && t !== 'light') t = 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="css/design-system.css" />
+  <link rel="stylesheet" href="css/inst-header.css" />
+  <link rel="stylesheet" href="css/app.css" />
+  <link rel="stylesheet" href="css/motion.css" />
+</head>
+<body>
+
+<div class="site-top" id="siteTop">
+<header class="inst-banner inst-banner--slim" role="banner">
+  <div class="inst-banner__inner">
+    <div class="inst-banner__patterns" aria-hidden="true">
+      <svg viewBox="0 0 1000 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <pattern id="bannerHex" width="28" height="48" patternUnits="userSpaceOnUse">
+            <path d="M14 4L24 11V29L14 36L4 29V11Z" fill="none" stroke="#0BA8D6" stroke-width="0.5" opacity="0.25"/>
+          </pattern>
+        </defs>
+        <rect width="1000" height="120" fill="url(#bannerHex)"/>
+        <circle cx="120" cy="36" r="40" fill="#9EE6F4" opacity="0.12"/>
+        <circle cx="880" cy="84" r="55" fill="#E5F9FE" opacity="0.35"/>
+        <path d="M550 24 Q700 42 620 60" fill="none" stroke="#0BA8D6" stroke-width="0.6" opacity="0.2"/>
+        <path d="M300 72 L450 66 L480 84" fill="none" stroke="#038FC9" stroke-width="0.5" opacity="0.18"/>
+        <g opacity="0.15" fill="#0BA8D6">
+          <circle cx="750" cy="30" r="1.5"/><circle cx="780" cy="34" r="1"/><circle cx="720" cy="38" r="1.2"/>
+          <circle cx="200" cy="90" r="1"/><circle cx="240" cy="94" r="1.5"/><circle cx="180" cy="86" r="0.8"/>
+        </g>
+      </svg>
+    </div>
+    <div class="inst-banner__left">
+      <div class="inst-banner__logo" aria-hidden="true">
+        <svg viewBox="0 0 80 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="6" y="2" width="5" height="5" rx="0.5" fill="#0BA8D6" opacity="0.85"/>
+          <rect x="13" y="2" width="5" height="5" rx="0.5" fill="#1CC5E2" opacity="0.7"/>
+          <rect x="10" y="9" width="4" height="4" rx="0.5" fill="#038FC9" opacity="0.6"/>
+          <path d="M18 58V30C18 18 28 12 40 12C52 12 62 18 62 30V58" stroke="#0BA8D6" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+          <path d="M40 26V50M30 38H50" stroke="#0276BC" stroke-width="5" stroke-linecap="round"/>
+          <path d="M64 48H74M74 48V56M70 52H74" stroke="#1CC5E2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="74" cy="56" r="2" fill="#1CC5E2"/>
+        </svg>
+      </div>
+      <div class="inst-banner__copy">
+        <span class="inst-banner__line1">UNIDAD</span>
+        <span class="inst-banner__line2"><span class="c">SANITARIA</span> <span class="n">N°3</span></span>
+        <span class="inst-banner__line3">Dirección Provincial de Salud Penitenciaria</span>
+        <span class="inst-banner__accent-line" aria-hidden="true"></span>
+      </div>
+    </div>
+    <div class="inst-banner__vdiv" aria-hidden="true"></div>
+    <div class="inst-banner__right">
+      <p class="inst-banner__gov1">Gobierno de la Provincia de</p>
+      <p class="inst-banner__gov2">Buenos Aires</p>
+    </div>
+  </div>
+</header>
+
+<div class="panel-strip">
+  <h1 class="panel-strip__title" id="panelViewTitle">Dashboard</h1>
+  <div class="panel-strip__meta">
+    <span class="meta-pill meta-pill--datetime" id="panelDateTime"><i class="ti ti-calendar"></i> —</span>
+    <span class="meta-pill meta-pill--weather" id="panelWeather" title="Clima — San Nicolás de los Arroyos"><i class="ti ti-cloud"></i> —</span>
+    <button type="button" class="theme-toggle" id="themeToggle" title="Cambiar tema claro/oscuro" aria-label="Cambiar tema">
+      <i class="ti ti-moon" id="themeToggleIcon"></i>
+    </button>
+  </div>
+</div>
+</div>
+
+<div class="site-main" id="siteMain">
+<div class="app-body">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__head">
+      <span class="sidebar__brand">US3 · DPSP</span>
+      <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Colapsar menú"><i class="ti ti-layout-sidebar-left-collapse"></i></button>
+    </div>
+    <nav aria-label="Navegación principal">
+      <button type="button" class="nav-item" data-view="patologias"><i class="ti ti-heart-rate-monitor"></i><span>Patologías</span></button>
+      <button type="button" class="nav-item" data-view="trimestral"><i class="ti ti-chart-bar"></i><span>Trimestrales</span></button>
+      <button type="button" class="nav-item" data-view="turnos"><i class="ti ti-urgent"></i><span>Turnos</span></button>
+      <button type="button" class="nav-item" data-view="licencias"><i class="ti ti-users"></i><span>Licencias</span></button>
+      <button type="button" class="nav-item" data-view="laboratorios"><i class="ti ti-test-pipe"></i><span>Laboratorios</span></button>
+      <button type="button" class="nav-item active" data-view="dashboard"><i class="ti ti-layout-dashboard"></i><span>Dashboard</span></button>
+      <button type="button" class="nav-item" data-view="administracion"><i class="ti ti-shield-lock"></i><span>Admin</span></button>
+      <button type="button" class="nav-item" data-view="configuracion"><i class="ti ti-settings"></i><span>Configuración</span></button>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="auth-status" id="authStatus" title="Modo solo lectura">
+        <span class="auth-dot readonly" id="authDot"></span>
+        <span id="authLabel">Solo lectura</span>
+      </div>
+      <button type="button" class="btn btn-primary" id="btnLogin" style="width:100%;justify-content:center"><i class="ti ti-login"></i><span>Iniciar sesión</span></button>
+      <button type="button" class="btn btn-secondary" id="btnLogout" style="width:100%;justify-content:center;display:none;margin-top:8px"><i class="ti ti-logout"></i><span>Cerrar sesión</span></button>
+      <button type="button" class="btn btn-secondary" id="btnPortalLogout" style="width:100%;justify-content:center;margin-top:8px"><i class="ti ti-door-exit"></i><span>Salir del panel</span></button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+
+    <section class="view active" id="view-dashboard">
+      <div class="view-toolbar no-print">
+        <span class="view-toolbar__spacer" aria-hidden="true"></span>
+        <div class="view-toolbar__actions">
+          <button type="button" class="btn btn-secondary" onclick="ExportPrint.print('dashboard')"><i class="ti ti-printer"></i> Imprimir</button>
+          <button type="button" class="btn btn-secondary" onclick="ExportPrint.exportCsv('dashboard')"><i class="ti ti-download"></i> Exportar CSV</button>
+        </div>
+      </div>
+      <p class="dashboard-lead">Elegí una sección del menú para consultar o registrar información.</p>
+      <div class="summary-grid" id="dashboardSummary"></div>
+      <details class="dashboard-details">
+        <summary>Ver detalle de patologías y gráficos</summary>
+        <div class="dashboard-details__body">
+          <div class="kpi-grid kpi-grid--detail" id="dashboardKpis"></div>
+          <div class="charts-row" id="dashboardCharts"></div>
+        </div>
+      </details>
+    </section>
+
+    <section class="view" id="view-licencias">
+      <div class="view-toolbar no-print">
+        <span class="view-toolbar__spacer" aria-hidden="true"></span>
+        <div class="view-toolbar__actions">
+          <button type="button" class="btn btn-secondary" onclick="ExportPrint.print('licencias')"><i class="ti ti-printer"></i> Imprimir</button>
+          <button type="button" class="btn btn-secondary" onclick="ExportPrint.exportCsv('licencias')"><i class="ti ti-download"></i> Exportar CSV</button>
+          <button type="button" class="btn btn-primary" id="licBtnAdd" onclick="LicenciasModule.openAdd()"><i class="ti ti-plus"></i> Agregar tramo</button>
+        </div>
+      </div>
+      <details class="dashboard-details">
+        <summary>Ver resumen numérico de licencias</summary>
+        <div class="dashboard-details__body">
+          <div class="stats-grid" id="licStats"></div>
+        </div>
+      </details>
+      <div class="filter-bar">
+        <div class="search-wrap"><i class="ti ti-search"></i><input type="text" id="licSearch" placeholder="Buscar…" /></div>
+        <select id="licFilterTramo"><option value="">Todos los tramos</option><option value="1">Tramo 1</option><option value="2">Tramo 2</option></select>
+        <select id="licFilterEstado"><option value="">Todos los estados</option><option value="confirmado">Confirmado</option><option value="pendiente">Pendiente</option><option value="completado">Completado</option></select>
+      </div>
+      <div class="table-card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Agente</th><th>Tramo</th><th>Desde</th><th>Hasta</th>
+                <th style="text-align:center">Tomados</th><th style="text-align:center">Restantes</th><th>Estado</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="licTbody"></tbody>
+          </table>
+          <div class="no-data" id="licNodata" style="display:none"><i class="ti ti-search-off"></i>No hay registros que coincidan.</div>
+        </div>
+      </div>
+      <p class="hint"><i class="ti ti-info-circle"></i> Clic en editar para modificar o agregar un segundo tramo. Los días tomados se cuentan en días hábiles (sin fines de semana ni feriados nacionales). El personal médico no puede superponer licencias con otro médico en el mismo período.</p>
+    </section>
+
+    <section class="view" id="view-laboratorios">
+      <div class="view-toolbar no-print">
+        <div class="readonly-banner readonly-banner--mini hidden" id="readonlyBannerLab"><i class="ti ti-eye"></i> Solo lectura</div>
+        <div class="view-toolbar__actions">
+          <button type="button" class="btn btn-secondary" onclick="ExportPrint.print('laboratorios')"><i class="ti ti-printer"></i> Imprimir</button>
+          <button type="button" class="btn btn-secondary" onclick="ExportPrint.exportCsv('laboratorios')"><i class="ti ti-download"></i> Exportar CSV</button>
+        </div>
+      </div>
+      <p class="dashboard-lead">Registro y seguimiento de estudios de laboratorio.</p>
+      <div class="filter-bar">
+        <div class="search-wrap"><i class="ti ti-search"></i><input type="text" id="labSearch" placeholder="Buscar interno o estudio…" /></div>
+        <select id="labFilterEstado"><option value="">Todos los estados</option><option value="pendiente">Pendiente</option><option value="en_proceso">En proceso</option><option value="informado">Informado</option></select>
+      </div>
+      <div class="table-card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Interno</th><th>Estudio</th><th>Solicitud</th><th>Médico solicitante</th><th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="labTbody"></tbody>
+          </table>
+          <div class="no-data" id="labNodata"><i class="ti ti-test-pipe-off"></i>Sin estudios registrados.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-patologias">
+      <div class="view-toolbar no-print">
+        <div class="readonly-banner readonly-banner--mini hidden" id="readonlyBanner"><i class="ti ti-eye"></i> Solo lectura</div>
+        <div class="view-toolbar__actions">
+          <button type="button" class="btn btn-secondary" onclick="ExportPrint.print('patologias')"><i class="ti ti-printer"></i> Imprimir</button>
+          <button type="button" class="btn btn-secondary" onclick="ExportPrint.exportCsv('patologias')"><i class="ti ti-download"></i> Exportar CSV</button>
+        </div>
+      </div>
+      <div class="pathology-priority" id="pathologyPriority"></div>
+      <div class="pathology-grid" id="pathologyGrid"></div>
+    </section>
+
+    <section class="view" id="view-trimestral">
+      <div class="view-toolbar no-print">
+        <div class="readonly-banner readonly-banner--mini hidden" id="readonlyBanner2"><i class="ti ti-eye"></i> Solo lectura</div>
+        <div class="view-toolbar__actions">
+          <button type="button" class="btn btn-secondary" onclick="ExportPrint.print('trimestral')"><i class="ti ti-printer"></i> Imprimir</button>
+          <button type="button" class="btn btn-secondary" onclick="ExportPrint.exportCsv('trimestral')"><i class="ti ti-download"></i> Exportar CSV</button>
+        </div>
+      </div>
+      <div class="quarter-selector" id="quarterSelector"></div>
+      <div class="trimestral-grid" id="trimestralGrid"></div>
+      <div class="charts-row" id="trimestralChart" style="margin-top:20px"></div>
+    </section>
+
+    <section class="view" id="view-turnos">
+      <div class="view-toolbar no-print">
+        <div class="readonly-banner readonly-banner--mini hidden" id="readonlyBanner3"><i class="ti ti-eye"></i> Solo lectura</div>
+        <div class="view-toolbar__actions">
+          <button type="button" class="btn btn-secondary" onclick="ExportPrint.print('turnos')"><i class="ti ti-printer"></i> Imprimir</button>
+          <button type="button" class="btn btn-secondary" onclick="ExportPrint.exportCsv('turnos')"><i class="ti ti-download"></i> Exportar CSV</button>
+          <button type="button" class="btn btn-primary edit-only" onclick="AdminModule.openTurnoAdd()"><i class="ti ti-plus"></i> Nuevo turno</button>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <div class="search-wrap"><i class="ti ti-search"></i><input type="text" id="turnoSearch" placeholder="Buscar interno o patología…" /></div>
+        <span class="filter-stat">Urgentes: <strong id="turnoUrgCount">0</strong></span>
+        <select id="turnoFilterUrg"><option value="">Toda urgencia</option><option value="alta">Urgente</option><option value="media">Moderada</option><option value="baja">Control</option></select>
+        <select id="turnoFilterEst"><option value="">Todos los estados</option><option value="pendiente">Pendiente</option><option value="programado">Programado</option><option value="completado">Completado</option></select>
+      </div>
+      <div class="table-card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Interno / Patología</th><th>Especialista</th><th>Prequirúrgico</th><th>Anestesista</th>
+                <th>Cardiología</th><th>Imágenes</th><th>Urgencia</th><th>Estado</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="turnoTbody"></tbody>
+          </table>
+          <div class="no-data" id="turnoNodata" style="display:none"><i class="ti ti-calendar-off"></i>Sin turnos.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-administracion">
+      <nav class="admin-subnav" aria-label="Panel administrativo">
+        <button type="button" class="admin-subnav__btn active" data-view="administracion"><i class="ti ti-shield-lock"></i> Accesos</button>
+        <button type="button" class="admin-subnav__btn admin-only hidden" data-view="personal"><i class="ti ti-id"></i> Personal</button>
+        <button type="button" class="admin-subnav__btn admin-only hidden" data-view="auditoria"><i class="ti ti-history"></i> Auditoría</button>
+        <button type="button" class="admin-subnav__btn" data-view="configuracion"><i class="ti ti-settings"></i> Configuración</button>
+      </nav>
+      <div class="view-toolbar no-print">
+        <span class="view-toolbar__spacer" aria-hidden="true"></span>
+        <div class="view-toolbar__actions">
+          <button type="button" class="btn btn-secondary" onclick="ExportPrint.print('administracion')"><i class="ti ti-printer"></i> Imprimir</button>
+          <button type="button" class="btn btn-secondary" onclick="ExportPrint.exportCsv('administracion')"><i class="ti ti-download"></i> Exportar CSV</button>
+          <button type="button" class="btn btn-primary" id="btnLoginAdmin"><i class="ti ti-login"></i> Iniciar sesión</button>
+        </div>
+      </div>
+      <div class="auth-panel" style="margin-bottom:24px">
+        <h3 style="font-size:1rem;margin-bottom:12px">Acceso al sistema</h3>
+        <p style="font-size:13px;color:var(--slate);margin-bottom:16px">Usuario y contraseña con recuperación de acceso (próxima implementación).</p>
+        <button type="button" class="btn btn-secondary" style="width:100%;margin-bottom:8px"><i class="ti ti-key"></i> Recuperar contraseña</button>
+        <p class="hint" style="margin:0"><strong>Demo edición:</strong> admin / us3admin</p>
+      </div>
+      <h3 style="font-size:1rem;margin-bottom:12px">Roles previstos</h3>
+      <div class="role-grid">
+        <div class="role-card"><h4><i class="ti ti-crown"></i> Administrador</h4><p>Acceso total y configuración del sistema.</p></div>
+        <div class="role-card"><h4><i class="ti ti-stethoscope"></i> Personal médico</h4><p>Edición de registros clínicos y turnos.</p></div>
+        <div class="role-card"><h4><i class="ti ti-clipboard"></i> Administrativo</h4><p>Gestión de licencias y estadísticas.</p></div>
+        <div class="role-card"><h4><i class="ti ti-eye"></i> Solo lectura</h4><p>Visualización sin modificar información.</p></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-personal">
+      <nav class="admin-subnav" aria-label="Panel administrativo">
+        <button type="button" class="admin-subnav__btn" data-view="administracion"><i class="ti ti-shield-lock"></i> Accesos</button>
+        <button type="button" class="admin-subnav__btn admin-only active" data-view="personal"><i class="ti ti-id"></i> Personal</button>
+        <button type="button" class="admin-subnav__btn admin-only" data-view="auditoria"><i class="ti ti-history"></i> Auditoría</button>
+        <button type="button" class="admin-subnav__btn" data-view="configuracion"><i class="ti ti-settings"></i> Configuración</button>
+      </nav>
+      <div class="view-toolbar no-print">
+        <p class="audit-notice"><i class="ti ti-lock"></i> Solo administrador — padrón completo US3</p>
+        <div class="view-toolbar__actions">
+          <button type="button" class="btn btn-secondary" onclick="ExportPrint.print('personal')"><i class="ti ti-printer"></i> Imprimir</button>
+          <button type="button" class="btn btn-secondary" onclick="ExportPrint.exportCsv('personal')"><i class="ti ti-download"></i> Exportar CSV</button>
+        </div>
+      </div>
+      <p class="dashboard-lead">Listado del personal sanitario. Con sesión de administrador podés editar cada registro desde el ícono <i class="ti ti-edit"></i>.</p>
+      <p class="hint edit-only hidden" id="personalEditHint" style="margin-top:-8px;margin-bottom:12px"><i class="ti ti-pencil"></i> Modo edición activo — los cambios se guardan en Supabase automáticamente.</p>
+      <div class="stats-grid" id="personalStats"></div>
+      <div class="filter-bar">
+        <div class="search-wrap"><i class="ti ti-search"></i><input type="text" id="personalSearch" placeholder="Buscar por nombre, legajo, DNI, mail…" /></div>
+        <span class="personal-count" id="personalCount">—</span>
+      </div>
+      <div class="table-card personal-card">
+        <div class="personal-loading hidden" id="personalLoading"><i class="ti ti-loader"></i> Cargando padrón…</div>
+        <div class="table-wrap personal-table-wrap">
+          <table class="personal-table">
+            <thead>
+              <tr>
+                <th>Apellido y nombre</th>
+                <th>N° Leg</th>
+                <th>DNI</th>
+                <th>F. nac.</th>
+                <th>Jerarquía</th>
+                <th>Teléfono</th>
+                <th>Mail oficial</th>
+                <th>Mail personal</th>
+                <th>Función</th>
+                <th>Jornada</th>
+                <th>Matrícula</th>
+                <th>Gdeba</th>
+                <th class="col-act edit-only hidden">Editar</th>
+              </tr>
+            </thead>
+            <tbody id="personalTbody"></tbody>
+          </table>
+          <div class="no-data" id="personalNodata"><i class="ti ti-users-off"></i>Sin resultados para la búsqueda.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-auditoria">
+      <nav class="admin-subnav" aria-label="Panel administrativo">
+        <button type="button" class="admin-subnav__btn" data-view="administracion"><i class="ti ti-shield-lock"></i> Accesos</button>
+        <button type="button" class="admin-subnav__btn admin-only hidden" data-view="personal"><i class="ti ti-id"></i> Personal</button>
+        <button type="button" class="admin-subnav__btn admin-only active" data-view="auditoria"><i class="ti ti-history"></i> Auditoría</button>
+        <button type="button" class="admin-subnav__btn" data-view="configuracion"><i class="ti ti-settings"></i> Configuración</button>
+      </nav>
+      <div class="view-toolbar no-print">
+        <p class="audit-notice"><i class="ti ti-lock"></i> Registro inmutable — solo consulta</p>
+        <div class="view-toolbar__actions">
+          <button type="button" class="btn btn-secondary" onclick="ExportPrint.print('auditoria')"><i class="ti ti-printer"></i> Imprimir</button>
+          <button type="button" class="btn btn-secondary" onclick="ExportPrint.exportCsv('auditoria')"><i class="ti ti-download"></i> Exportar CSV</button>
+        </div>
+      </div>
+      <p class="dashboard-lead">Historial automático de cambios en el sistema. Solo visible para administradores.</p>
+      <div class="filter-bar">
+        <div class="search-wrap"><i class="ti ti-search"></i><input type="text" id="auditSearch" placeholder="Buscar en auditoría…" /></div>
+        <select id="auditFilterModulo">
+          <option value="">Todos los módulos</option>
+          <option value="Patologías">Patologías</option>
+          <option value="Trimestrales">Trimestrales</option>
+          <option value="Turnos">Turnos</option>
+          <option value="Laboratorios">Laboratorios</option>
+          <option value="Licencias">Licencias</option>
+          <option value="Personal">Personal</option>
+          <option value="Administración">Administración</option>
+        </select>
+        <select id="auditFilterAccion">
+          <option value="">Todas las acciones</option>
+          <option value="INSERT">INSERT</option>
+          <option value="UPDATE">UPDATE</option>
+          <option value="DELETE">DELETE</option>
+        </select>
+      </div>
+      <div class="table-card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th><th>Usuario</th><th>Módulo</th><th>Acción</th><th>Detalle</th>
+              </tr>
+            </thead>
+            <tbody id="auditTbody"></tbody>
+          </table>
+          <div class="no-data" id="auditNodata"><i class="ti ti-history-off"></i>Sin registros de auditoría.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-configuracion">
+      <nav class="admin-subnav" aria-label="Panel administrativo">
+        <button type="button" class="admin-subnav__btn" data-view="administracion"><i class="ti ti-shield-lock"></i> Accesos</button>
+        <button type="button" class="admin-subnav__btn admin-only hidden" data-view="personal"><i class="ti ti-id"></i> Personal</button>
+        <button type="button" class="admin-subnav__btn admin-only hidden" data-view="auditoria"><i class="ti ti-history"></i> Auditoría</button>
+        <button type="button" class="admin-subnav__btn active" data-view="configuracion"><i class="ti ti-settings"></i> Configuración</button>
+      </nav>
+      <div class="view-toolbar no-print">
+        <span class="view-toolbar__spacer" aria-hidden="true"></span>
+        <div class="view-toolbar__actions">
+          <button type="button" class="btn btn-secondary" onclick="ExportPrint.print('configuracion')"><i class="ti ti-printer"></i> Imprimir</button>
+          <button type="button" class="btn btn-secondary" onclick="ExportPrint.exportCsv('configuracion')"><i class="ti ti-download"></i> Exportar CSV</button>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3>Unidad Sanitaria N°3</h3>
+        <p style="font-size:13px;color:var(--slate);line-height:1.6">Plataforma de gestión sanitaria penitenciaria — Dirección Provincial de Salud Penitenciaria.<br>Versión 1.0 · Preparada para ampliaciones futuras.</p>
+      </div>
+      <div class="settings-card">
+        <h3><i class="ti ti-palette"></i> Apariencia</h3>
+        <p class="settings-card__desc">Elegí cómo se ve la plataforma. La preferencia se guarda en este navegador.</p>
+        <div class="theme-switch" role="group" aria-label="Tema de la interfaz">
+          <button type="button" class="theme-switch__btn" data-theme-btn="light" id="themeBtnLight">
+            <i class="ti ti-sun"></i> Tema claro
+          </button>
+          <button type="button" class="theme-switch__btn" data-theme-btn="dark" id="themeBtnDark">
+            <i class="ti ti-moon"></i> Tema oscuro
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+</div>
+
+<div class="toast-root" id="toastRoot" aria-live="polite"></div>
+
+<!-- Modals (sin cambios funcionales) -->
+<div class="modal-overlay" id="licModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="licModalTitle">Agregar tramo de licencia</h2>
+      <button type="button" class="modal-close" onclick="LicenciasModule.closeModal()" aria-label="Cerrar"><i class="ti ti-x"></i></button>
+    </div>
+    <input type="hidden" id="licEditId" />
+    <div class="lic-alert lic-alert--error hidden" id="licErrorBanner" role="alert"></div>
+    <div class="lic-alert lic-alert--info hidden" id="licInfoBanner" role="status"></div>
+    <p class="form-section">Agente</p>
+    <div class="form-row"><label for="licNombre">Apellido y nombre</label><input type="text" id="licNombre" placeholder="Ej: González María" oninput="LicenciasModule.onFormChange()" /></div>
+    <div class="form-row lic-medico-row">
+      <label class="lic-check"><input type="checkbox" id="licEsMedico" onchange="LicenciasModule.onFormChange()" /> Personal médico</label>
+    </div>
+    <div class="form-row"><label for="licTramo">Tramo</label><select id="licTramo"><option value="1">Tramo 1</option><option value="2">Tramo 2</option></select></div>
+    <p class="form-section">Fechas</p>
+    <div class="form-grid">
+      <div class="form-row"><label for="licDesde">Desde</label><input type="date" id="licDesde" oninput="LicenciasModule.calcDias(); LicenciasModule.onFormChange()" /></div>
+      <div class="form-row"><label for="licHasta">Hasta</label><input type="date" id="licHasta" oninput="LicenciasModule.calcDias(); LicenciasModule.onFormChange()" /></div>
+    </div>
+    <p class="hint lic-dias-hint" id="licDiasHint"><i class="ti ti-calendar-stats"></i> Los días tomados se calculan en días hábiles: no se incluyen sábados, domingos ni feriados nacionales.</p>
+    <p class="form-section">Días</p>
+    <div class="form-grid">
+      <div class="form-row"><label for="licTomados">Días tomados</label><input type="number" id="licTomados" min="0" /></div>
+      <div class="form-row"><label for="licRestan">Días restantes</label><input type="number" id="licRestan" min="0" /></div>
+    </div>
+    <p class="form-section">Estado y notas</p>
+    <div class="form-row"><label for="licEstado">Estado</label><select id="licEstado"><option value="confirmado">Confirmado</option><option value="pendiente">Pendiente</option><option value="completado">Completado</option></select></div>
+    <div class="form-row"><label for="licNotas">Notas</label><input type="text" id="licNotas" placeholder="Observaciones…" /></div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" onclick="LicenciasModule.closeModal()">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="LicenciasModule.saveEntry()"><i class="ti ti-device-floppy"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="perModal" role="dialog" aria-modal="true">
+  <div class="modal modal--wide">
+    <div class="modal-header">
+      <h2 class="modal-title" id="perModalTitle">Editar agente</h2>
+      <button type="button" class="modal-close" onclick="PersonalModule.closeModal()" aria-label="Cerrar"><i class="ti ti-x"></i></button>
+    </div>
+    <input type="hidden" id="perEditLegajoKey" />
+    <input type="hidden" id="perSupabaseId" />
+    <p class="form-section">Identificación</p>
+    <div class="form-grid">
+      <div class="form-row"><label for="perApellido">Apellido</label><input type="text" id="perApellido" required /></div>
+      <div class="form-row"><label for="perNombre">Nombre</label><input type="text" id="perNombre" /></div>
+      <div class="form-row"><label for="perLegajo">N° Legajo</label><input type="text" id="perLegajo" required /></div>
+      <div class="form-row"><label for="perDni">DNI</label><input type="text" id="perDni" /></div>
+      <div class="form-row"><label for="perFecha">Fecha de nacimiento</label><input type="date" id="perFecha" /></div>
+      <div class="form-row"><label for="perJerarquia">Jerarquía</label><input type="text" id="perJerarquia" /></div>
+    </div>
+    <p class="form-section">Contacto</p>
+    <div class="form-grid">
+      <div class="form-row"><label for="perTelefono">Teléfono</label><input type="text" id="perTelefono" /></div>
+      <div class="form-row"><label for="perEmailOficial">Mail oficial</label><input type="email" id="perEmailOficial" /></div>
+      <div class="form-row form-row--full"><label for="perEmailPersonal">Mail personal</label><input type="email" id="perEmailPersonal" /></div>
+    </div>
+    <p class="form-section">Datos laborales</p>
+    <div class="form-grid">
+      <div class="form-row"><label for="perFuncion">Función</label><input type="text" id="perFuncion" /></div>
+      <div class="form-row"><label for="perJornada">Jornada laboral</label><input type="text" id="perJornada" /></div>
+      <div class="form-row"><label for="perMatricula">Matrícula</label><input type="text" id="perMatricula" /></div>
+      <div class="form-row"><label for="perGdeba">Gdeba</label><input type="text" id="perGdeba" /></div>
+    </div>
+    <div class="form-row lic-medico-row">
+      <label class="lic-check"><input type="checkbox" id="perEsMedico" /> Personal médico</label>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" onclick="PersonalModule.closeModal()">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="PersonalModule.saveEntry()"><i class="ti ti-device-floppy"></i> Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="turnoModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="turnoModalTitle">Nuevo turno urgente</h2>
+      <button type="button" class="modal-close" onclick="AdminModule.closeTurnoModal()" aria-label="Cerrar"><i class="ti ti-x"></i></button>
+    </div>
+    <p class="form-section">Interno</p>
+    <div class="form-row"><label for="turnoPaciente">Identificación</label><input type="text" id="turnoPaciente" placeholder="Ej: Interno A-042" /></div>
+    <div class="form-row"><label for="turnoPatologia">Diagnóstico</label><input type="text" id="turnoPatologia" placeholder="Ej: Hernia inguinal" /></div>
+    <div class="form-row"><label for="turnoEsp">Especialista</label><select id="turnoEsp"><option>Cirugía general</option><option>Traumatología</option><option>Cardiología</option><option>Anestesiología</option><option>Diagnóstico por imágenes</option><option>Neurología</option><option>Otro</option></select></div>
+    <p class="form-section">Turnos</p>
+    <div class="form-grid">
+      <div class="form-row"><label for="turnoPrequir">Prequirúrgico</label><input type="date" id="turnoPrequir" /></div>
+      <div class="form-row"><label for="turnoAnest">Anestesista</label><input type="date" id="turnoAnest" /></div>
+      <div class="form-row"><label for="turnoCardio">Cardiología</label><input type="date" id="turnoCardio" /></div>
+      <div class="form-row"><label for="turnoImg">Imágenes</label><input type="date" id="turnoImg" /></div>
+    </div>
+    <p class="form-section">Prioridad</p>
+    <div class="form-grid">
+      <div class="form-row"><label for="turnoUrg">Urgencia</label><select id="turnoUrg"><option value="alta">Urgente</option><option value="media">Moderada</option><option value="baja">Control</option></select></div>
+      <div class="form-row"><label for="turnoEst">Estado</label><select id="turnoEst"><option value="pendiente">Pendiente</option><option value="programado">Programado</option><option value="completado">Completado</option></select></div>
+    </div>
+    <div class="form-row"><label for="turnoNotas">Notas</label><textarea id="turnoNotas" rows="2"></textarea></div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-danger edit-only admin-edit-btn" onclick="AdminModule.deleteTurno()" style="margin-right:auto"><i class="ti ti-trash"></i> Eliminar</button>
+      <button type="button" class="btn btn-secondary" onclick="AdminModule.closeTurnoModal()">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="AdminModule.saveTurno()"><i class="ti ti-device-floppy"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="loginOverlay" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Iniciar sesión</h2>
+      <button type="button" class="modal-close" onclick="closeLogin()" aria-label="Cerrar"><i class="ti ti-x"></i></button>
+    </div>
+    <form id="loginForm">
+      <div class="form-row"><label for="loginUser">Usuario</label><input type="text" id="loginUser" autocomplete="username" required /></div>
+      <div class="form-row"><label for="loginPass">Contraseña</label><input type="password" id="loginPass" autocomplete="current-password" required /></div>
+      <p id="loginError" style="display:none;color:#b91c1c;font-size:13px;margin-top:8px"><i class="ti ti-alert-circle"></i> Credenciales incorrectas.</p>
+      <div class="modal-footer" style="border-top:none;padding-top:8px">
+        <button type="button" class="btn btn-secondary" onclick="closeLogin()">Cancelar</button>
+        <button type="submit" class="btn btn-primary"><i class="ti ti-login"></i> Ingresar</button>
+      </div>
+    </form>
+    <div class="login-hint"><strong>Edición:</strong> admin / us3admin</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/data-service.js"></script>
+<script src="js/audit.js"></script>
+<script src="js/export-print.js"></script>
+<script src="js/motion.js"></script>
+<script src="js/app.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/licencias-dias.js"></script>
+<script src="js/licencias-default.js"></script>
+<script src="js/licencias.js"></script>
+<script src="js/laboratorios.js"></script>
+<script src="js/administracion.js"></script>
+<script src="js/personal.js"></script>
+</body>
+</html>

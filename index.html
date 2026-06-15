@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Unidad Sanitaria N°3 — Dirección Provincial de Salud Penitenciaria. Provincia de Buenos Aires." />
+  <title>Unidad Sanitaria N°3 — Acceso al panel</title>
+  <script>
+    (function () {
+      if (sessionStorage.getItem('us3_portal_auth') === 'true') {
+        window.location.replace('panel.html');
+        return;
+      }
+      var t = localStorage.getItem('us3_theme');
+      if (t !== 'dark' && t !== 'light') t = 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="css/design-system.css" />
+  <link rel="stylesheet" href="css/login.css" />
+  <link rel="stylesheet" href="css/motion.css" />
+</head>
+<body class="landing">
+
+  <div class="landing__top">
+    <div class="landing__banner">
+      <div class="landing__banner-inner">
+        <div class="landing__brand">
+          <div class="landing__logo" aria-hidden="true">
+            <svg viewBox="0 0 80 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="6" y="2" width="5" height="5" rx="0.5" fill="#0BA8D6" opacity="0.85"/>
+              <rect x="13" y="2" width="5" height="5" rx="0.5" fill="#1CC5E2" opacity="0.7"/>
+              <rect x="10" y="9" width="4" height="4" rx="0.5" fill="#038FC9" opacity="0.6"/>
+              <path d="M18 58V30C18 18 28 12 40 12C52 12 62 18 62 30V58" stroke="#0BA8D6" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+              <path d="M40 26V50M30 38H50" stroke="#0276BC" stroke-width="5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div>
+            <div class="landing__line1">UNIDAD</div>
+            <div class="landing__line2"><span class="c">SANITARIA</span> <span class="n">N°3</span></div>
+          </div>
+        </div>
+        <div class="landing__org">
+          Dirección Provincial de Salud Penitenciaria<br>
+          Ministerio de Justicia y Derechos Humanos<br>
+          <strong>Provincia de Buenos Aires</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main class="landing__main">
+    <section class="landing__info">
+      <h2>Quiénes somos</h2>
+      <p>
+        La <strong>Unidad Sanitaria N°3</strong> forma parte de la Dirección Provincial de Salud Penitenciaria
+        del Ministerio de Justicia y Derechos Humanos de la Provincia de Buenos Aires. Brindamos atención
+        sanitaria integral a personas privadas de la libertad, con un equipo interdisciplinario comprometido
+        con la calidad asistencial, la organización clínica y el resguardo de los derechos en salud.
+      </p>
+      <p>
+        Este sitio está destinado al <strong>personal autorizado</strong> de la unidad para la gestión
+        organizativa de licencias, patologías, estadísticas y turnos. Si usted no pertenece a la institución,
+        encontrará aquí información general de contacto y ubicación.
+      </p>
+
+      <div class="landing__facts">
+        <div class="landing__fact">
+          <i class="ti ti-map-pin"></i>
+          <div>
+            <strong>Ubicación</strong>
+            <span>Av. Savio 1072 — San Nicolás de los Arroyos<br>Provincia de Buenos Aires</span>
+          </div>
+        </div>
+        <div class="landing__fact">
+          <i class="ti ti-phone"></i>
+          <div>
+            <strong>Teléfono</strong>
+            <span>(03364) 452471</span>
+          </div>
+        </div>
+        <div class="landing__fact">
+          <i class="ti ti-building-hospital"></i>
+          <div>
+            <strong>Ámbito</strong>
+            <span>Salud penitenciaria — Unidad Sanitaria N°3 · DPSP</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="landing__login">
+      <h2>Acceso al panel</h2>
+      <p class="landing__login-desc">
+        Ingresá con usuario y contraseña para acceder al sistema de gestión interno.
+        El acceso está restringido al personal habilitado.
+      </p>
+      <form id="portalLoginForm" autocomplete="on">
+        <div class="form-row">
+          <label for="portalUser">Usuario</label>
+          <input type="text" id="portalUser" name="username" autocomplete="username" required placeholder="Usuario" />
+        </div>
+        <div class="form-row">
+          <label for="portalPass">Contraseña</label>
+          <input type="password" id="portalPass" name="password" autocomplete="current-password" required placeholder="Contraseña" />
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="ti ti-login"></i> Ingresar al panel</button>
+        <p class="landing__error hidden" id="portalLoginError" role="alert">
+          <i class="ti ti-alert-circle"></i>
+          <span>Usuario o contraseña incorrectos. Verifique sus datos e intente nuevamente.</span>
+        </p>
+      </form>
+      <p class="landing__hint">
+        <strong>Acceso genérico (provisional):</strong> usuario <code>us3</code> — contraseña <code>us3</code>.<br>
+        En una próxima etapa cada agente contará con credenciales individuales.
+      </p>
+    </aside>
+  </main>
+
+  <footer class="landing__footer">
+    Unidad Sanitaria N°3 · Dirección Provincial de Salud Penitenciaria · Gobierno de la Provincia de Buenos Aires
+  </footer>
+
+  <script src="js/login.js"></script>
+</body>
+</html>

@@ -1,0 +1,351 @@
+/* US3 — Motion & micro-interacciones (respeta prefers-reduced-motion) */
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-enter,
+  .view.active,
+  .view--entering,
+  .modal-overlay.open .modal,
+  .pathology-fold[open] .pathology-fold__body,
+  .toast,
+  .nav-item--pulse {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .btn:hover,
+  .kpi-card:hover,
+  .stat-card:hover,
+  .pathology-card:hover,
+  .nav-item:hover {
+    transform: none !important;
+  }
+}
+
+@keyframes us3-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes us3-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes us3-slide-right {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes us3-nav-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+
+@keyframes us3-fold-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes us3-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ── Vistas ── */
+.view.active {
+  animation: us3-fade-up 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.motion-enter {
+  animation: us3-fade-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--motion-delay, 0ms);
+}
+
+/* ── Sidebar ── */
+.nav-item {
+  position: relative;
+  overflow: hidden;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nav-item::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--color-action);
+  transform: scaleY(0);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.nav-item.active::after {
+  transform: scaleY(1);
+}
+
+.nav-item:hover {
+  transform: translateX(2px);
+}
+
+.nav-item.active {
+  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.12);
+}
+
+.nav-item--pulse {
+  animation: us3-nav-pulse 0.28s ease;
+}
+
+.admin-subnav__btn {
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.admin-subnav__btn:hover {
+  transform: translateY(-1px);
+}
+
+.admin-subnav__btn.active {
+  box-shadow: 0 2px 8px rgba(30, 58, 138, 0.12);
+}
+
+/* ── Botones ── */
+.btn {
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+}
+
+.edit-btn {
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.edit-btn:hover {
+  transform: scale(1.08);
+}
+
+.edit-btn:active {
+  transform: scale(0.95);
+}
+
+/* ── Tarjetas ── */
+.kpi-card,
+.stat-card,
+.pathology-card,
+.trimestral-item,
+.table-card,
+.chart-card,
+.role-card {
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.kpi-card:hover,
+.stat-card:hover,
+.pathology-card:hover,
+.trimestral-item:hover {
+  transform: translateY(-3px);
+}
+
+.kpi-card--link:active {
+  transform: translateY(-1px) scale(0.99);
+}
+
+.pathology-card .path-icon {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pathology-card:hover .path-icon {
+  transform: scale(1.08);
+}
+
+.pathology-count,
+.stat-value,
+.kpi-card__value {
+  transition: transform 0.25s ease, color 0.2s ease;
+}
+
+.pathology-card:focus-within .pathology-count,
+.stat-card:hover .stat-value {
+  transform: scale(1.03);
+}
+
+/* ── Patologías prioritarias ── */
+.pathology-fold {
+  transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.2s ease;
+}
+
+.pathology-fold:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.pathology-fold[open] {
+  box-shadow: var(--shadow-md);
+}
+
+.pathology-fold[open] .pathology-fold__body {
+  animation: us3-fold-reveal 0.28s ease both;
+}
+
+.pathology-fold__count {
+  transition: transform 0.25s ease;
+}
+
+.pathology-fold[open] .pathology-fold__count {
+  transform: scale(1.06);
+}
+
+.pathology-fold__list li {
+  transition: padding-left 0.2s ease, color 0.2s ease;
+}
+
+.pathology-fold__list li:hover {
+  padding-left: 4px;
+  color: var(--blue-900);
+}
+
+/* ── Tablas ── */
+tbody tr {
+  transition: background 0.18s ease;
+}
+
+.personal-table tbody tr,
+#licTbody tr,
+#auditTbody tr {
+  animation: us3-fade-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--motion-delay, 0ms);
+}
+
+.contact-chip {
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.contact-chip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(30, 58, 138, 0.1);
+}
+
+/* ── Modales ── */
+.modal-overlay {
+  transition: opacity 0.25s ease, backdrop-filter 0.25s ease;
+  opacity: 0;
+}
+
+.modal-overlay.open {
+  opacity: 1;
+}
+
+.modal-overlay .modal {
+  animation: us3-scale-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Toasts ── */
+.toast {
+  animation: us3-slide-right 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Filtros / inputs ── */
+.search-wrap,
+.filter-bar select {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.search-wrap:focus-within {
+  transform: translateY(-1px);
+}
+
+/* ── Loading ── */
+.personal-loading,
+.dashboard-loading {
+  backdrop-filter: blur(2px);
+}
+
+.personal-loading .ti-loader,
+.ti-loader.motion-spin {
+  animation: spin 0.75s linear infinite;
+}
+
+/* ── Login (index) ── */
+.landing__banner {
+  animation: us3-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition: box-shadow 0.3s ease;
+}
+
+.landing__info {
+  animation: us3-fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both 0.06s;
+}
+
+.landing__login {
+  animation: us3-scale-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both 0.1s;
+}
+
+.landing__login .form-row {
+  animation: us3-fade-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing__login .form-row:nth-child(1) { animation-delay: 0.18s; }
+.landing__login .form-row:nth-child(2) { animation-delay: 0.24s; }
+.landing__login .btn-primary { animation: us3-fade-up 0.4s ease both 0.3s; }
+
+.landing__fact {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.landing__fact:hover {
+  transform: translateX(4px);
+}
+
+.landing__banner:hover {
+  box-shadow: 0 8px 32px rgba(30, 58, 138, 0.1);
+}
+
+/* ── Auth dot ── */
+.auth-dot.authed,
+.meta-pill--live .meta-dot {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* ── Sidebar collapse ── */
+.sidebar {
+  transition: width 0.28s cubic-bezier(0.22, 1, 0.36, 1), background 0.25s ease;
+}
+
+.sidebar nav {
+  scroll-behavior: smooth;
+}
