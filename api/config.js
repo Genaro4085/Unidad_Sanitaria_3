@@ -1,5 +1,4 @@
-/** Vercel serverless — expone US3_CONFIG en runtime (sin build). */
-module.exports = (req, res) => {
+export default function handler() {
   const supabaseUrl = (
     process.env.SUPABASE_URL ||
     process.env.VITE_SUPABASE_URL ||
@@ -16,7 +15,10 @@ module.exports = (req, res) => {
 
   const body = `window.US3_CONFIG = ${JSON.stringify({ supabaseUrl, supabaseKey })};`;
 
-  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-store');
-  res.status(200).send(body);
-};
+  return new Response(body, {
+    headers: {
+      'Content-Type': 'application/javascript; charset=utf-8',
+      'Cache-Control': 'no-store',
+    },
+  });
+}

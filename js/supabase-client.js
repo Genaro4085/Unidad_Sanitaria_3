@@ -11,7 +11,7 @@ const SupabaseClient = (() => {
   function init() {
     const { supabaseUrl, supabaseKey } = getConfig();
     if (!supabaseUrl || !supabaseKey || supabaseUrl.includes('TU_PROYECTO')) {
-      lastError = 'Configuración Supabase incompleta (js/config.js)';
+      lastError = 'Configuración Supabase incompleta (variables SUPABASE_URL / SUPABASE_ANON_KEY)';
       return null;
     }
     if (!window.supabase?.createClient) {
