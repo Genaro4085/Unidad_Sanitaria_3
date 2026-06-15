@@ -136,11 +136,39 @@ const AdminModule = (() => {
 
       const count = internos.length;
 
+      const editable = typeof canEditPatologias === 'function' ? canEditPatologias() : false;
+
       const list = internos.length
 
-        ? `<ul class="pathology-fold__list">${internos.map(n => `<li>${escapeHtml(n)}</li>`).join('')}</ul>`
+        ? `<ul class="pathology-fold__list">${internos.map((n, i) => `
+
+          <li>
+
+            <span class="pathology-fold__name">${escapeHtml(n)}</span>
+
+            ${editable ? `<button type="button" class="pathology-fold__remove" onclick="AdminModule.removeInternoGrupo('${key}', ${i})" aria-label="Quitar ${escapeHtml(n)}"><i class="ti ti-x"></i></button>` : ''}
+
+          </li>`).join('')}</ul>`
 
         : '<p class="pathology-fold__empty">Sin internos registrados.</p>';
+
+
+
+      const addBlock = editable ? `
+
+        <div class="pathology-fold__add no-print">
+
+          <input type="text" id="grupo-interno-${key}" placeholder="Apellido y nombre o N° interno" maxlength="120"
+
+            onkeydown="if(event.key==='Enter'){event.preventDefault();AdminModule.addInternoGrupo('${key}');}" />
+
+          <button type="button" class="btn btn-secondary pathology-fold__add-btn" onclick="AdminModule.addInternoGrupo('${key}')">
+
+            <i class="ti ti-plus"></i> Agregar
+
+          </button>
+
+        </div>` : '';
 
 
 
@@ -156,13 +184,143 @@ const AdminModule = (() => {
 
         </summary>
 
-        <div class="pathology-fold__body">${list}</div>
+        <div class="pathology-fold__body">${list}${addBlock}</div>
 
       </details>`;
 
     }).join('');
 
     bindPriorityGrupoSync();
+  }
+
+
+
+  function ensureGrupo(key) {
+
+    if (!appData.patologiasGrupos) appData.patologiasGrupos = {};
+
+    if (!appData.patologiasGrupos[key]) {
+
+      const def = DEFAULT_DATA.patologiasGrupos?.[key] || { label: key, internos: [] };
+
+      appData.patologiasGrupos[key] = structuredClone(def);
+
+    }
+
+    if (!Array.isArray(appData.patologiasGrupos[key].internos)) {
+
+      appData.patologiasGrupos[key].internos = [];
+
+    }
+
+  }
+
+
+
+  function addInternoGrupo(key) {
+
+    if (typeof canEditPatologias === 'function' ? !canEditPatologias() : !canEdit()) return;
+
+    const input = document.getElementById('grupo-interno-' + key);
+
+    const nombre = input?.value.trim();
+
+    if (!nombre) {
+
+      input?.focus();
+
+      return;
+
+    }
+
+    ensureGrupo(key);
+
+    const internos = appData.patologiasGrupos[key].internos;
+
+    const norm = nombre.toLowerCase();
+
+    if (internos.some(n => String(n).trim().toLowerCase() === norm)) {
+
+      if (typeof showToast === 'function') showToast('Ese interno ya está en la lista.', 'info');
+
+      return;
+
+    }
+
+    internos.push(nombre);
+
+    saveData();
+
+    if (typeof logAudit === 'function') {
+
+      logAudit({
+
+        modulo: 'Patologías',
+
+        tabla: 'patologias_grupos',
+
+        accion: 'INSERT',
+
+        registroId: key,
+
+        detalle: `Se agregó "${nombre}" a ${getGrupo(key).label || key}`,
+
+      });
+
+    }
+
+    renderPriorityGrupos();
+
+    document.querySelectorAll('.pathology-fold').forEach(f => { f.open = true; });
+
+    if (typeof DashboardModule !== 'undefined') DashboardModule.render();
+
+    if (typeof showToast === 'function') showToast('Interno agregado.', 'success');
+
+  }
+
+
+
+  function removeInternoGrupo(key, index) {
+
+    if (typeof canEditPatologias === 'function' ? !canEditPatologias() : !canEdit()) return;
+
+    ensureGrupo(key);
+
+    const internos = appData.patologiasGrupos[key].internos;
+
+    const removed = internos[index];
+
+    if (removed == null) return;
+
+    internos.splice(index, 1);
+
+    saveData();
+
+    if (typeof logAudit === 'function') {
+
+      logAudit({
+
+        modulo: 'Patologías',
+
+        tabla: 'patologias_grupos',
+
+        accion: 'DELETE',
+
+        registroId: key,
+
+        detalle: `Se quitó "${removed}" de ${getGrupo(key).label || key}`,
+
+      });
+
+    }
+
+    renderPriorityGrupos();
+
+    document.querySelectorAll('.pathology-fold').forEach(f => { f.open = true; });
+
+    if (typeof DashboardModule !== 'undefined') DashboardModule.render();
+
   }
 
 
@@ -802,7 +960,7 @@ const AdminModule = (() => {
 
   return {
 
-    renderPatologias, updatePatologia, renderTrimestral, selectQuarter,
+    renderPatologias, updatePatologia, addInternoGrupo, removeInternoGrupo, renderTrimestral, selectQuarter,
 
     updateTrimestral, renderTurnos, openTurnoAdd, openTurnoEdit,
 
