@@ -70,6 +70,9 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
 
+  /* CDN, fuentes y librerías externas: los carga el navegador (evita CSP/504 en SW). */
+  if (url.origin !== self.location.origin) return;
+
   if (isSensitiveUrl(url)) {
     event.respondWith(networkOnlyNoStore(request));
     return;
@@ -85,12 +88,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (url.origin === self.location.origin) {
-    event.respondWith(networkFirstStatic(request));
-    return;
-  }
-
-  event.respondWith(fetch(request).catch(() => new Response('', { status: 504 })));
+  event.respondWith(networkFirstStatic(request));
 });
 
 async function networkOnlyNoStore(request) {
