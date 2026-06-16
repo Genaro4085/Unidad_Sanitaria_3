@@ -31,7 +31,6 @@ const PRECACHE_URLS = [
 const SENSITIVE_PATHS = [
   /^\/api\//,
   /^\/js\/config\.js$/,
-  /^\/js\/load-config\.js$/,
 ];
 
 const SENSITIVE_HOSTS = [/\.supabase\.co$/i];
@@ -59,7 +58,6 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then(cache => cache.addAll(PRECACHE_URLS))
-      .then(() => self.skipWaiting())
       .catch(err => console.warn('[SW] precache parcial', err))
   );
 });

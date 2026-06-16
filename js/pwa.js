@@ -39,7 +39,7 @@ const PWAModule = (() => {
   function registerServiceWorker() {
     if (!('serviceWorker' in navigator)) return Promise.resolve(null);
 
-    return navigator.serviceWorker.register('/sw.js', { scope: '/' })
+    return navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' })
       .then(reg => {
         swRegistration = reg;
         listenForUpdates(reg);
@@ -161,16 +161,24 @@ const PWAModule = (() => {
 
   function init() {
     document.documentElement.classList.toggle('pwa-standalone', isStandalone());
-    registerServiceWorker();
     bindInstallUI();
     bindOfflineUI();
   }
 
-  return { init, isStandalone, applyUpdate };
+  function initServiceWorker() {
+    registerServiceWorker();
+  }
+
+  return { init, initServiceWorker, isStandalone, applyUpdate };
 })();
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => PWAModule.init());
-} else {
+function us3PwaBoot() {
   PWAModule.init();
+  PWAModule.initServiceWorker();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', us3PwaBoot);
+} else {
+  us3PwaBoot();
 }
