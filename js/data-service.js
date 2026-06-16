@@ -315,7 +315,7 @@ const DataService = (() => {
 
     const turnos = platform.turnosUrgentes || [];
     const delTurnos = await sb.from('turnos').delete().gte('id', 0);
-    if (delTurnos.error) console.warn('[US3 Sync] turnos delete:', delTurnos.error.message);
+    if (delTurnos.error) console.warn('[US3 Supabase] turnos delete:', delTurnos.error.message);
     if (turnos.length) {
       const ins = await sb.from('turnos').insert(turnos.map(t => ({
         paciente: t.paciente || null,
@@ -329,12 +329,12 @@ const DataService = (() => {
         estado: t.estado || 'pendiente',
         observaciones: t.notas || null,
       })));
-      if (ins.error) console.warn('[US3 Sync] turnos insert:', ins.error.message);
+      if (ins.error) console.warn('[US3 Supabase] turnos insert:', ins.error.message);
     }
 
     const labs = platform.laboratorios || [];
     const delLabs = await sb.from('laboratorios').delete().gte('id', 0);
-    if (delLabs.error) console.warn('[US3 Sync] laboratorios delete:', delLabs.error.message);
+    if (delLabs.error) console.warn('[US3 Supabase] laboratorios delete:', delLabs.error.message);
     if (labs.length) {
       const ins = await sb.from('laboratorios').insert(labs.map(l => ({
         interno_label: l.interno || null,
@@ -343,10 +343,171 @@ const DataService = (() => {
         fecha_solicitud: l.solicitud || null,
         medico_solicitante: l.medicoSolicitante || l.medico || null,
         estado: l.estado || 'pendiente',
-        observaciones: l.notas || null,
+        observaciones: l.notas || l.observaciones || null,
       })));
-      if (ins.error) console.warn('[US3 Sync] laboratorios insert:', ins.error.message);
+      if (ins.error) console.warn('[US3 Supabase] laboratorios insert:', ins.error.message);
     }
+
+    await mirrorPatologiasTrimestral(platform);
+  }
+
+  async function mirrorPatologiasTrimestral(platform) {
+    const sb = getClient();
+    if (!sb || !platform) return;
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    const { data: tiposPat, error: errPat } = await sb.from('tipos_patologias').select('id, codigo');
+    if (errPat) {
+      console.warn('[US3 Supabase] tipos_patologias:', errPat.message);
+      return;
+    }
+    const patMap = Object.fromEntries((tiposPat || []).map(t => [t.codigo, t.id]));
+
+    for (const [codigo, cantidad] of Object.entries(platform.patologias || {})) {
+      const tipoId = patMap[codigo];
+      if (!tipoId) continue;
+      await sb.from('registro_patologias').delete().eq('tipo_patologia_id', tipoId).eq('fecha', today);
+      const { error } = await sb.from('registro_patologias').insert({
+        tipo_patologia_id: tipoId,
+        cantidad: Number(cantidad) || 0,
+        fecha: today,
+      });
+      if (error) console.warn('[US3 Supabase] registro_patologias:', error.message);
+    }
+
+    const { data: tiposTrim, error: errTrim } = await sb.from('tipos_trimestral').select('id, codigo');
+    if (errTrim) {
+      console.warn('[US3 Supabase] tipos_trimestral:', errTrim.message);
+      return;
+    }
+    const trimMap = Object.fromEntries((tiposTrim || []).map(t => [t.codigo, t.id]));
+
+    for (const [periodo, vals] of Object.entries(platform.trimestral || {})) {
+      if (!vals || typeof vals !== 'object') continue;
+      for (const [codigo, cantidad] of Object.entries(vals)) {
+        const tipoId = trimMap[codigo];
+        if (!tipoId) continue;
+        const { error } = await sb.from('registro_trimestral').upsert({
+          tipo_id: tipoId,
+          periodo,
+          cantidad: Number(cantidad) || 0,
+          fecha: today,
+        }, { onConflict: 'tipo_id,periodo' });
+        if (error) console.warn('[US3 Supabase] registro_trimestral:', error.message);
+      }
+    }
+  }
+
+  async function loadFullPlatform() {
+    const remote = await loadPlatformState();
+    if (remote?.payload?.platform) return remote.payload;
+
+    const assembled = await assemblePlatformFromTables();
+    if (assembled) return { version: 2, platform: assembled };
+
+    return null;
+  }
+
+  async function assemblePlatformFromTables() {
+    const sb = getClient();
+    if (!sb) return null;
+
+    const { data: turnosRows } = await sb.from('turnos').select('*').order('id');
+    const { data: labRows } = await sb.from('laboratorios').select('*').order('id');
+
+    if (!(turnosRows?.length || labRows?.length)) return null;
+
+    const turnosUrgentes = (turnosRows || []).map((t, i) => ({
+      id: t.id || i + 1,
+      supabaseId: t.id,
+      paciente: t.paciente || '',
+      patologia: t.patologia || '',
+      especialista: t.especialista || '',
+      prequirurgico: t.prequirurgico || '',
+      anestesista: t.anestesista || '',
+      cardiologia: t.cardiologia || '',
+      imagenes: t.imagenes || '',
+      urgencia: t.urgencia || 'media',
+      estado: t.estado || 'pendiente',
+      notas: t.observaciones || '',
+    }));
+
+    const laboratorios = (labRows || []).map((l, i) => ({
+      id: l.id || i + 1,
+      supabaseId: l.id,
+      interno: l.interno_label || '',
+      estudio: l.estudio || '',
+      solicitud: l.fecha_solicitud || l.solicitud || '',
+      medicoSolicitante: l.medico_solicitante || '',
+      estado: l.estado || 'pendiente',
+      notas: l.observaciones || '',
+    }));
+
+    const nextTurnoId = turnosUrgentes.length
+      ? Math.max(...turnosUrgentes.map(t => t.id)) + 1
+      : 1;
+    const nextLabId = laboratorios.length
+      ? Math.max(...laboratorios.map(l => l.id)) + 1
+      : 1;
+
+    return { turnosUrgentes, laboratorios, nextTurnoId, nextLabId };
+  }
+
+  async function saveFullPlatform(payload) {
+    const saved = await savePlatformState(payload);
+    if (payload?.platform) await mirrorOperationalTables(payload.platform);
+    return saved;
+  }
+
+  async function saveAuditEntry(entry) {
+    const sb = getClient();
+    if (!sb || !(await isOnline())) return false;
+    const { error } = await sb.from('auditoria').insert({
+      usuario_nombre: entry.usuario || 'Sistema',
+      tabla_afectada: entry.tabla || '—',
+      registro_id: String(entry.registroId ?? ''),
+      accion: entry.accion || 'UPDATE',
+      detalle: {
+        modulo: entry.modulo || '—',
+        detalle: entry.detalle || '',
+        ts: entry.ts || new Date().toISOString(),
+        localId: entry.id,
+      },
+    });
+    if (error) {
+      console.warn('[US3 Supabase] auditoria:', error.message);
+      return false;
+    }
+    return true;
+  }
+
+  async function fetchAuditLog() {
+    const sb = getClient();
+    if (!sb) return null;
+    const { data, error } = await sb
+      .from('auditoria')
+      .select('id, usuario_nombre, tabla_afectada, registro_id, accion, fecha_hora, detalle')
+      .order('fecha_hora', { ascending: false })
+      .limit(500);
+    if (error) throw error;
+    return (data || []).map(row => ({
+      id: String(row.detalle?.localId || row.id),
+      ts: row.detalle?.ts || row.fecha_hora,
+      usuario: row.usuario_nombre || 'Sistema',
+      modulo: row.detalle?.modulo || '—',
+      tabla: row.tabla_afectada || '—',
+      accion: row.accion,
+      registroId: row.registro_id || '',
+      detalle: row.detalle?.detalle || '',
+    }));
+  }
+
+  async function deleteLicencia(id) {
+    const sb = getClient();
+    if (!sb) throw new Error('Sin conexión a Supabase');
+    const { error } = await sb.from('licencias').delete().eq('id', id);
+    if (error) throw error;
   }
 
   return {
@@ -356,10 +517,15 @@ const DataService = (() => {
     saveAgente,
     listLicencias,
     saveLicencia,
+    deleteLicencia,
     seedLicenciasIfEmpty,
     loadPlatformState,
     savePlatformState,
+    loadFullPlatform,
+    saveFullPlatform,
     mirrorOperationalTables,
+    saveAuditEntry,
+    fetchAuditLog,
     displayAgentName,
     normalizeName,
   };

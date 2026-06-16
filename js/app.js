@@ -136,17 +136,9 @@ function syncPatologiaGrupoCounts() {
 function saveData() {
   syncPatologiaGrupoCounts();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
-  setMetaAfterLocalSave();
-  if (typeof PlatformSync !== 'undefined') PlatformSync.schedulePush();
-}
-
-function setMetaAfterLocalSave() {
-  try {
-    const meta = JSON.parse(localStorage.getItem('us3_sync_meta') || '{}') || {};
-    meta.updatedAt = new Date().toISOString();
-    meta.source = 'local';
-    localStorage.setItem('us3_sync_meta', JSON.stringify(meta));
-  } catch (_) { /* ignore */ }
+  if (typeof PlatformSync !== 'undefined') {
+    PlatformSync.persist(appData);
+  }
 }
 
 function reloadAppDataFromStorage() {
@@ -180,6 +172,7 @@ function getPatologiasEditors() {
 function setPatologiasEditors(list) {
   const unique = [...new Set(list.map(normalizeEditorId).filter(Boolean))];
   localStorage.setItem(PATOLOGIAS_EDITORS_KEY, JSON.stringify(unique));
+  if (typeof PlatformSync !== 'undefined') PlatformSync.schedulePush();
 }
 
 function grantPatologiasEdit(identifier) {
@@ -531,7 +524,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       else console.info('[US3 Supabase] Conectado — esquema listo');
 
       if (status.ok && typeof PlatformSync !== 'undefined') {
-        await PlatformSync.syncOnStartup();
+        await PlatformSync.bootstrapFromSupabase();
         reloadAppDataFromStorage();
       }
     } catch (err) {

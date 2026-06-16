@@ -45,8 +45,14 @@ function loadAuditLog() {
 }
 
 function persistAuditLog(entries) {
-  localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(entries.slice(0, AUDIT_MAX_ENTRIES)));
+  const trimmed = entries.slice(0, AUDIT_MAX_ENTRIES);
+  localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(trimmed));
   if (typeof PlatformSync !== 'undefined') PlatformSync.schedulePush();
+}
+
+function replaceAuditLog(entries) {
+  if (!Array.isArray(entries)) return;
+  persistAuditLog(entries);
 }
 
 /** Registra una acción (solo cuando hay sesión de edición activa). */
@@ -67,6 +73,10 @@ function logAudit({ modulo, tabla, accion, registroId, detalle }) {
   const log = loadAuditLog();
   log.unshift(entry);
   persistAuditLog(log);
+
+  if (typeof DataService !== 'undefined') {
+    DataService.saveAuditEntry(entry).catch(err => console.warn('[US3 Supabase] audit:', err.message));
+  }
 }
 
 function formatAuditDate(iso) {
@@ -179,8 +189,26 @@ const AuditModule = (() => {
 
   function init() {
     if (!isAdmin()) return;
-    seedDemoIfEmpty();
     bindFilters();
+    initAsync();
+  }
+
+  async function initAsync() {
+    if (typeof DataService !== 'undefined' && await DataService.isOnline()) {
+      try {
+        const remote = await DataService.fetchAuditLog();
+        if (remote?.length) {
+          replaceAuditLog(remote);
+        } else {
+          seedDemoIfEmpty();
+        }
+      } catch (err) {
+        console.warn('[US3 Supabase] audit load:', err.message);
+        seedDemoIfEmpty();
+      }
+    } else {
+      seedDemoIfEmpty();
+    }
     render();
   }
 

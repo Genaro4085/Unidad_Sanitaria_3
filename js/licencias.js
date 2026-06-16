@@ -65,12 +65,16 @@ const LicenciasModule = (() => {
       const loaded = loadLicenciasLocal();
       data = loaded.data;
       nextId = loaded.nextId;
+      if (typeof showToast === 'function') {
+        showToast('Licencias en caché local — conectá Supabase para sincronizar', 'error', 5000);
+      }
       return;
     }
 
     await DataService.seedLicenciasIfEmpty(getDefaultLicencias());
-    data = await DataService.listLicencias();
+    data = await DataService.listLicencias() || [];
     nextId = data.length ? Math.max(...data.map(d => d.id)) + 1 : 1;
+    saveLicenciasLocal();
   }
 
   function normalizeName(name) {
