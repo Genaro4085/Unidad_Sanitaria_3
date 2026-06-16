@@ -47,6 +47,7 @@ const PersonalModule = (() => {
     const all = loadOverrides();
     all[String(legajo)] = data;
     localStorage.setItem(OVERRIDES_KEY, JSON.stringify(all));
+    if (typeof PlatformSync !== 'undefined') PlatformSync.schedulePush();
   }
 
   function applyOverrides(list) {

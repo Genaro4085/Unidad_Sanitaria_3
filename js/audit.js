@@ -46,6 +46,7 @@ function loadAuditLog() {
 
 function persistAuditLog(entries) {
   localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(entries.slice(0, AUDIT_MAX_ENTRIES)));
+  if (typeof PlatformSync !== 'undefined') PlatformSync.schedulePush();
 }
 
 /** Registra una acción (solo cuando hay sesión de edición activa). */

@@ -275,6 +275,80 @@ const DataService = (() => {
     return true;
   }
 
+  async function loadPlatformState() {
+    const sb = getClient();
+    if (!sb) return null;
+    const { data, error } = await sb
+      .from('us3_platform_state')
+      .select('payload, updated_at, updated_by')
+      .eq('id', 'us3')
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  }
+
+  async function savePlatformState(payload) {
+    const sb = getClient();
+    if (!sb) throw new Error('Sin conexión a Supabase');
+    const user = (
+      sessionStorage.getItem('us3_auth_user')
+      || sessionStorage.getItem('us3_portal_user')
+      || 'US3'
+    );
+    const { data, error } = await sb
+      .from('us3_platform_state')
+      .upsert({
+        id: 'us3',
+        payload,
+        updated_at: new Date().toISOString(),
+        updated_by: user,
+      })
+      .select('updated_at')
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function mirrorOperationalTables(platform) {
+    const sb = getClient();
+    if (!sb || !(await isOnline()) || !platform) return;
+
+    const turnos = platform.turnosUrgentes || [];
+    const delTurnos = await sb.from('turnos').delete().gte('id', 0);
+    if (delTurnos.error) console.warn('[US3 Sync] turnos delete:', delTurnos.error.message);
+    if (turnos.length) {
+      const ins = await sb.from('turnos').insert(turnos.map(t => ({
+        paciente: t.paciente || null,
+        patologia: t.patologia || null,
+        especialista: t.especialista || null,
+        prequirurgico: t.prequirurgico || null,
+        anestesista: t.anestesista || null,
+        cardiologia: t.cardiologia || null,
+        imagenes: t.imagenes || null,
+        urgencia: t.urgencia || 'media',
+        estado: t.estado || 'pendiente',
+        observaciones: t.notas || null,
+      })));
+      if (ins.error) console.warn('[US3 Sync] turnos insert:', ins.error.message);
+    }
+
+    const labs = platform.laboratorios || [];
+    const delLabs = await sb.from('laboratorios').delete().gte('id', 0);
+    if (delLabs.error) console.warn('[US3 Sync] laboratorios delete:', delLabs.error.message);
+    if (labs.length) {
+      const ins = await sb.from('laboratorios').insert(labs.map(l => ({
+        interno_label: l.interno || null,
+        estudio: l.estudio || 'Estudio',
+        solicitud: l.solicitud || null,
+        fecha_solicitud: l.solicitud || null,
+        medico_solicitante: l.medicoSolicitante || l.medico || null,
+        estado: l.estado || 'pendiente',
+        observaciones: l.notas || null,
+      })));
+      if (ins.error) console.warn('[US3 Sync] laboratorios insert:', ins.error.message);
+    }
+  }
+
   return {
     isOnline,
     listAgentes,
@@ -283,6 +357,9 @@ const DataService = (() => {
     listLicencias,
     saveLicencia,
     seedLicenciasIfEmpty,
+    loadPlatformState,
+    savePlatformState,
+    mirrorOperationalTables,
     displayAgentName,
     normalizeName,
   };

@@ -48,6 +48,7 @@ const LicenciasModule = (() => {
 
   function saveLicenciasLocal() {
     localStorage.setItem(LICENCIAS_STORAGE_KEY, JSON.stringify({ data, nextId }));
+    if (typeof PlatformSync !== 'undefined') PlatformSync.schedulePush();
   }
 
   async function refreshFromSupabase() {
@@ -418,7 +419,7 @@ const LicenciasModule = (() => {
         });
       }
 
-      if (!useSupabase) saveLicenciasLocal();
+      saveLicenciasLocal();
     } catch (err) {
       if (typeof showToast === 'function') {
         showToast('No se pudo guardar en la base de datos: ' + (err.message || err), 'error', 7000);

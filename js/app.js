@@ -136,6 +136,25 @@ function syncPatologiaGrupoCounts() {
 function saveData() {
   syncPatologiaGrupoCounts();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+  setMetaAfterLocalSave();
+  if (typeof PlatformSync !== 'undefined') PlatformSync.schedulePush();
+}
+
+function setMetaAfterLocalSave() {
+  try {
+    const meta = JSON.parse(localStorage.getItem('us3_sync_meta') || '{}') || {};
+    meta.updatedAt = new Date().toISOString();
+    meta.source = 'local';
+    localStorage.setItem('us3_sync_meta', JSON.stringify(meta));
+  } catch (_) { /* ignore */ }
+}
+
+function reloadAppDataFromStorage() {
+  appData = loadData();
+  syncPatologiaGrupoCounts();
+  if (typeof isAuthenticated !== 'undefined' && isAuthenticated && !sessionStorage.getItem(AUTH_USER_KEY)) {
+    sessionStorage.setItem(AUTH_USER_KEY, 'Administrador');
+  }
 }
 
 function canEdit() {
@@ -434,7 +453,7 @@ function updateThemeUI() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   updateSiteTopHeight();
   window.addEventListener('resize', updateSiteTopHeight);
   const top = document.getElementById('siteTop');
@@ -503,13 +522,22 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(updateWeather, 30 * 60 * 1000);
 
   const startView = new URLSearchParams(location.search).get('view');
-  navigate(startView && VIEW_TITLES[startView] ? startView : 'dashboard');
 
   if (typeof SupabaseClient !== 'undefined') {
-    SupabaseClient.ping().then(status => {
+    try {
+      const status = await SupabaseClient.ping();
       if (!status.ok) console.warn('[US3 Supabase]', status.error || status.message);
       else if (!status.schemaReady) console.info('[US3 Supabase]', status.message);
       else console.info('[US3 Supabase] Conectado — esquema listo');
-    });
+
+      if (status.ok && typeof PlatformSync !== 'undefined') {
+        await PlatformSync.syncOnStartup();
+        reloadAppDataFromStorage();
+      }
+    } catch (err) {
+      console.warn('[US3 Supabase]', err.message || err);
+    }
   }
+
+  navigate(startView && VIEW_TITLES[startView] ? startView : 'dashboard');
 });
