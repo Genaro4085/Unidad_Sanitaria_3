@@ -1,63 +1,283 @@
-/* US3 — Design System (Clinical Trust & Tech) */
+/* US3 — Design System · Tema claro profesional (sanitario / administrativo)
+   Paleta pensada para jornadas largas: fondos suaves, azul institucional,
+   acentos verdes discretos y contraste WCAG AA mínimo (AAA donde es posible). */
 
-/* Tipografías: cargadas desde index.html / panel.html (evita @import bloqueado por CSP). */
+/* Tipografías: cargadas desde index.html / panel.html */
 
 :root,
 [data-theme="light"] {
   color-scheme: light;
 
-  /* ── Paleta institucional ── */
-  --color-primary: #1E3A8A;
-  --color-primary-light: #2563EB;
-  --color-primary-soft: #DBEAFE;
-  --color-action: #10B981;
-  --color-action-hover: #059669;
-  --color-bg: #F8FAFC;
-  --color-surface: #FFFFFF;
-  --color-text: #1E293B;
-  --color-text-muted: #64748B;
-  --color-success: #059669;
-  --color-warning: #D97706;
-  --color-danger: #DC2626;
+  /* ═══════════════════════════════════════════════════════════════
+     SUPERFICIES
+     Tonos off-white y grises fríos que reducen deslumbramiento frente a #FFFFFF.
+     ═══════════════════════════════════════════════════════════════ */
 
-  /* Alias legacy (compatibilidad con módulos existentes) */
-  --blue-900: #1E3A8A;
-  --blue-800: #1E40AF;
+  /** Fondo principal — #F5F7FA: gris azulado muy suave; base cómoda para 8+ h de uso. */
+  --surface-page: #F5F7FA;
+
+  /** Fondos secundarios — capas intermedias en secciones y agrupadores. */
+  --surface-secondary: #EEF1F5;
+  --surface-tertiary: #E8ECF1;
+
+  /** Tarjetas y paneles — #FAFBFC eleva contenido sin blanco puro. */
+  --surface-card: #FAFBFC;
+  --surface-elevated: #FCFDFE;
+
+  /** Barra superior e institucional — #F8F9FA alinea con apps gubernamentales modernas. */
+  --surface-topbar: #F8F9FA;
+  --surface-sidebar: #F8F9FA;
+
+  /** Modales y formularios — ligero contraste sobre la página. */
+  --surface-modal: #FAFBFC;
+  --surface-form: #F8F9FA;
+
+  /** Campos de entrada — #FEFEFE apenas más claro que la tarjeta (jerarquía sutil). */
+  --surface-input: #FEFEFE;
+  --surface-input-disabled: #EEF1F5;
+
+  /* ═══════════════════════════════════════════════════════════════
+     MARCA INSTITUCIONAL (azul sanitario / gubernamental)
+     ═══════════════════════════════════════════════════════════════ */
+
+  /** Azul profundo institucional — transmite confianza y seriedad clínica. */
+  --color-brand: #1E3A5F;
+  --color-brand-hover: #163049;
+  --color-brand-active: #12253A;
+  --color-brand-light: #2E5984;
+  --color-brand-soft: #DDE7F0;
+  --color-brand-muted: #EBF0F6;
+
+  /* ═══════════════════════════════════════════════════════════════
+     TEXTO
+     Jerarquía legible: primario ~12:1, secundario ~5.5:1, deshabilitado solo decorativo.
+     ═══════════════════════════════════════════════════════════════ */
+
+  /** Texto principal — #1A2332 sobre #F5F7FA ≈ 12.5:1 (AAA). */
+  --text-primary: #1A2332;
+
+  /** Texto secundario — metadatos, subtítulos; ≈ 5.5:1 (AA). */
+  --text-secondary: #5C6678;
+
+  /** Texto terciario — etiquetas menores, hints; ≈ 4.6:1 (AA). */
+  --text-tertiary: #6B7280;
+
+  /** Texto deshabilitado — no usar para contenido crítico; ≈ 3:1 (solo UI inactiva). */
+  --text-disabled: #9CA3AF;
+
+  /** Texto sobre botones oscuros / primarios. */
+  --text-inverse: #FAFBFC;
+
+  /** Enlaces — azul institucional con buen contraste; hover más profundo. */
+  --text-link: #1E4976;
+  --text-link-hover: #163B5E;
+  --text-link-active: #122E4A;
+  --text-link-visited: #2E5984;
+
+  /* ═══════════════════════════════════════════════════════════════
+     BORDES Y SEPARADORES
+     Líneas discretas que estructuran sin ruido visual.
+     ═══════════════════════════════════════════════════════════════ */
+
+  --border-default: #D8DEE6;
+  --border-subtle: #E4E9EF;
+  --border-strong: #C5CDD8;
+  --border-focus: #2563EB;
+  --separator: #E8ECF1;
+
+  /* ═══════════════════════════════════════════════════════════════
+     BOTONES
+     Primario verde moderado; secundarios neutros; semánticos contenidos.
+     ═══════════════════════════════════════════════════════════════ */
+
+  /** Primario — verde sanitario discreto (#047857); acción principal sin saturación. */
+  --btn-primary-bg: #047857;
+  --btn-primary-hover: #065F46;
+  --btn-primary-active: #064E3B;
+  --btn-primary-text: #FAFBFC;
+
+  /** Secundario — neutro elevado; ideal para acciones complementarias. */
+  --btn-secondary-bg: #EFF1F4;
+  --btn-secondary-hover: #E4E8ED;
+  --btn-secondary-active: #D8DEE6;
+  --btn-secondary-text: #1F2937;
+  --btn-secondary-border: #C9D1DA;
+
+  /** Éxito — confirmaciones y estados positivos. */
+  --btn-success-bg: #059669;
+  --btn-success-hover: #047857;
+  --btn-success-active: #065F46;
+  --btn-success-text: #FAFBFC;
+
+  /** Advertencia — acciones cautelosas, no destructivas. */
+  --btn-warning-bg: #D97706;
+  --btn-warning-hover: #B45309;
+  --btn-warning-active: #92400E;
+  --btn-warning-text: #FAFBFC;
+
+  /** Error / peligro — eliminar, revertir. */
+  --btn-danger-bg: #B91C1C;
+  --btn-danger-hover: #991B1B;
+  --btn-danger-active: #7F1D1D;
+  --btn-danger-text: #FAFBFC;
+  --btn-danger-soft-bg: #FCEEED;
+  --btn-danger-soft-text: #991B1B;
+  --btn-danger-soft-border: #F0C4C0;
+
+  /** Deshabilitado — opaco y sin ambigüedad. */
+  --btn-disabled-bg: #EEF1F5;
+  --btn-disabled-text: #9CA3AF;
+  --btn-disabled-border: #E4E9EF;
+
+  /* ═══════════════════════════════════════════════════════════════
+     ESTADOS INTERACTIVOS
+     ═══════════════════════════════════════════════════════════════ */
+
+  --state-hover-bg: #E8EEF5;
+  --state-active-bg: #DDE7F2;
+  --state-selected-bg: #DDE7F2;
+  --state-selected-border: #1E4976;
+  --state-focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.22);
+  --state-disabled-opacity: 0.55;
+
+  /* ═══════════════════════════════════════════════════════════════
+     TABLAS
+     Lectura prolongada: zebra suave, hover visible, encabezado diferenciado.
+     ═══════════════════════════════════════════════════════════════ */
+
+  --table-head-bg: #EEF2F7;
+  --table-head-text: #1E3A5F;
+  --table-row-bg: #FAFBFC;
+  --table-row-alt-bg: #F3F5F8;
+  --table-row-hover-bg: #E8EEF5;
+  --table-row-selected-bg: #DDE7F2;
+  --table-row-border: #E8ECF1;
+
+  /* ═══════════════════════════════════════════════════════════════
+     BADGES
+     Fondos pastel + texto oscuro para contraste AA en etiquetas pequeñas.
+     ═══════════════════════════════════════════════════════════════ */
+
+  --badge-neutral-bg: #EEF1F5;
+  --badge-neutral-text: #4B5563;
+  --badge-info-bg: #E3EBF4;
+  --badge-info-text: #1E4976;
+  --badge-success-bg: #DDF3EA;
+  --badge-success-text: #047857;
+  --badge-warning-bg: #FEF3E2;
+  --badge-warning-text: #92400E;
+  --badge-error-bg: #FCE8E8;
+  --badge-error-text: #991B1B;
+  --badge-pending-bg: #EEF1F5;
+  --badge-pending-text: #5C6678;
+
+  /* ═══════════════════════════════════════════════════════════════
+     ALERTAS
+     Informativas, éxito, advertencia y error — tonos suaves, bordes definidos.
+     ═══════════════════════════════════════════════════════════════ */
+
+  --alert-info-bg: #EBF3FA;
+  --alert-info-border: #B8D4EA;
+  --alert-info-text: #1E4976;
+  --alert-info-icon: #2E5984;
+
+  --alert-success-bg: #E6F4EF;
+  --alert-success-border: #A7D9C8;
+  --alert-success-text: #047857;
+  --alert-success-icon: #059669;
+
+  --alert-warning-bg: #FEF6E8;
+  --alert-warning-border: #F0D9A8;
+  --alert-warning-text: #92400E;
+  --alert-warning-icon: #B45309;
+
+  --alert-error-bg: #FCEEED;
+  --alert-error-border: #F0C4C0;
+  --alert-error-text: #991B1B;
+  --alert-error-icon: #B91C1C;
+
+  /* ═══════════════════════════════════════════════════════════════
+     SEMÁNTICA GENERAL
+     ═══════════════════════════════════════════════════════════════ */
+
+  --semantic-success: #047857;
+  --semantic-warning: #B45309;
+  --semantic-error: #B91C1C;
+  --semantic-info: #1E4976;
+
+  /* ═══════════════════════════════════════════════════════════════
+     SOMBRAS
+     Sombras frías y tenues — profundidad sin peso visual.
+     ═══════════════════════════════════════════════════════════════ */
+
+  --shadow-sm: 0 1px 2px rgba(26, 35, 50, 0.06);
+  --shadow-md: 0 4px 12px rgba(26, 35, 50, 0.08);
+  --shadow-lg: 0 12px 28px rgba(26, 35, 50, 0.10);
+  --shadow-focus: 0 0 0 3px rgba(37, 99, 235, 0.22);
+
+  /* ═══════════════════════════════════════════════════════════════
+     OVERLAY / BANNER INSTITUCIONAL
+     ═══════════════════════════════════════════════════════════════ */
+
+  --overlay-bg: rgba(26, 35, 50, 0.42);
+  --banner-gradient: radial-gradient(ellipse 140% 120% at 18% 50%, #EBF0F6 0%, #F5F7FA 28%, #FAFBFC 52%, #F5F7FA 78%, #EBF0F6 100%);
+  --banner-border: rgba(30, 58, 95, 0.10);
+  --banner-shadow: 0 2px 12px rgba(26, 35, 50, 0.06);
+  --banner-text-muted: #5C6678;
+  --banner-text-sub: #6B7280;
+  --banner-text-dark: #1A2332;
+  --banner-pattern-opacity: 0.30;
+
+  /* ═══════════════════════════════════════════════════════════════
+     ALIAS LEGACY — compatibilidad con módulos existentes
+     ═══════════════════════════════════════════════════════════════ */
+
+  --color-primary: var(--color-brand);
+  --color-primary-light: var(--color-brand-light);
+  --color-primary-soft: var(--color-brand-soft);
+  --color-action: var(--btn-primary-bg);
+  --color-action-hover: var(--btn-primary-hover);
+  --color-bg: var(--surface-page);
+  --color-surface: var(--surface-card);
+  --color-text: var(--text-primary);
+  --color-text-muted: var(--text-secondary);
+  --color-success: var(--semantic-success);
+  --color-warning: var(--semantic-warning);
+  --color-danger: var(--semantic-error);
+
+  --blue-900: var(--color-brand);
+  --blue-800: var(--color-brand-light);
   --blue-700: #2563EB;
   --blue-500: #3B82F6;
-  --navy-800: #1E293B;
+  --navy-800: var(--text-primary);
   --navy-900: #0F172A;
-  --slate: #64748B;
-  --accent-light: #DBEAFE;
-  --accent-pale: #EFF6FF;
-  --white: #FFFFFF;
+  --slate: var(--text-secondary);
+  --accent-light: var(--color-brand-soft);
+  --accent-pale: var(--color-brand-muted);
+  --white: var(--surface-card);
 
-  --text-body: #1E293B;
-  --text-muted: #64748B;
-  --border-color: rgba(30, 58, 138, 0.08);
-  --border-color-strong: rgba(30, 58, 138, 0.14);
-  --input-bg: #FFFFFF;
-  --thead-bg: linear-gradient(90deg, #EFF6FF, rgba(239, 246, 255, 0.5));
-  --row-hover: rgba(239, 246, 255, 0.65);
-  --overlay-bg: rgba(15, 23, 42, 0.4);
+  --text-body: var(--text-primary);
+  --text-muted: var(--text-secondary);
+  --border-color: rgba(30, 58, 95, 0.08);
+  --border-color-strong: rgba(30, 58, 95, 0.14);
+  --input-bg: var(--surface-input);
+  --thead-bg: var(--table-head-bg);
+  --row-hover: var(--table-row-hover-bg);
 
-  --gradient-primary: linear-gradient(135deg, #10B981 0%, #059669 100%);
-  --gradient-dark: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%);
-  --gradient-soft: linear-gradient(135deg, #1E3A8A 0%, #DBEAFE 100%);
+  --bg-page: var(--surface-page);
+  --bg-card: var(--surface-card);
+  --bg-soft: var(--color-brand-muted);
+  --bg-muted: var(--surface-secondary);
+  --gradient-app: linear-gradient(180deg, #FAFBFC 0%, #F5F7FA 50%, #EEF1F5 100%);
 
-  --bg-page: #F8FAFC;
-  --bg-card: #FFFFFF;
-  --bg-soft: #EFF6FF;
-  --bg-muted: #F1F5F9;
-  --gradient-app: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 50%, #F1F5F9 100%);
+  --gradient-primary: linear-gradient(135deg, #059669 0%, #047857 100%);
+  --gradient-dark: linear-gradient(135deg, #0F172A 0%, #1E3A5F 100%);
+  --gradient-soft: linear-gradient(135deg, #1E3A5F 0%, #DDE7F0 100%);
 
-  --banner-gradient: radial-gradient(ellipse 140% 120% at 18% 50%, #EFF6FF 0%, #F8FAFC 28%, #FFFFFF 52%, #F8FAFC 78%, #EFF6FF 100%);
-  --banner-border: rgba(30, 58, 138, 0.12);
-  --banner-shadow: 0 2px 12px rgba(30, 58, 138, 0.06);
-  --banner-text-muted: #64748B;
-  --banner-text-sub: #64748B;
-  --banner-text-dark: #1E293B;
-  --banner-pattern-opacity: 0.35;
+  --success: var(--semantic-success);
+  --warning: var(--semantic-warning);
+  --danger: var(--semantic-error);
+  --info: var(--semantic-info);
 
   /* ── Tipografía ── */
   --font-display: 'Plus Jakarta Sans', sans-serif;
@@ -78,10 +298,6 @@
   --radius-xl: 16px;
   --radius-pill: 999px;
 
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
-  --shadow-md: 0 4px 16px rgba(30, 58, 138, 0.1);
-  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12);
-
   --sidebar-w: 188px;
   --sidebar-collapsed: 56px;
   --header-pad: 20px;
@@ -91,11 +307,6 @@
   --space-lg: 24px;
   --space-xl: 36px;
   --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-
-  --success: #059669;
-  --warning: #D97706;
-  --danger: #DC2626;
-  --info: #2563EB;
 }
 
 [data-theme="dark"] {
@@ -162,6 +373,22 @@ body {
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
+a {
+  color: var(--text-link);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+a:hover { color: var(--text-link-hover); }
+a:active { color: var(--text-link-active); }
+a:visited { color: var(--text-link-visited); }
+
+a:focus-visible {
+  outline: none;
+  box-shadow: var(--state-focus-ring);
+  border-radius: 2px;
+}
+
 .hidden { display: none !important; }
 
 h1 {
@@ -196,4 +423,31 @@ h3, .font-display {
 button, .btn {
   font-family: var(--font-action);
   font-weight: 500;
+}
+
+button:focus-visible,
+.btn:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  box-shadow: var(--state-focus-ring);
+}
+
+button:disabled,
+.btn:disabled {
+  background: var(--btn-disabled-bg) !important;
+  color: var(--btn-disabled-text) !important;
+  border-color: var(--btn-disabled-border) !important;
+  opacity: var(--state-disabled-opacity);
+  cursor: not-allowed;
+  box-shadow: none !important;
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  background: var(--surface-input-disabled);
+  color: var(--text-disabled);
+  cursor: not-allowed;
 }
