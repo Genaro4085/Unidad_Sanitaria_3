@@ -1,31 +1,16 @@
-/* US3 Service Worker — caché seguro (sin datos sensibles ni auth) */
-/* BUILD_ID se reemplaza en deploy: local-mqfvdlhm */
+/* US3 Service Worker — caché conservadora (red fresca cuando hay red) */
+/* BUILD_ID se reemplaza en deploy */
 
 const BUILD_ID = '__BUILD_ID__';
 const STATIC_CACHE = `us3-static-${BUILD_ID}`;
 const RUNTIME_CACHE = `us3-runtime-${BUILD_ID}`;
 
-/** Shell público precacheado (sin respuestas autenticadas). */
 const PRECACHE_URLS = [
-  '/',
-  '/index.html',
-  '/panel.html',
   '/offline.html',
-  '/manifest.webmanifest',
   '/favicon.svg',
-  '/css/design-system.css',
-  '/css/login.css',
-  '/css/inst-header.css',
-  '/css/app.css',
-  '/css/motion.css',
-  '/css/pwa.css',
-  '/js/login.js',
-  '/js/load-config.js',
-  '/js/pwa.js',
-  '/icons/icon.svg',
+  '/css/tabler-icons.min.css',
+  '/css/fonts/tabler-icons.woff2',
   '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  '/icons/icon-maskable-512.png',
 ];
 
 const SENSITIVE_PATHS = [
@@ -46,7 +31,8 @@ function isSensitiveUrl(url) {
 function isStaticAsset(url) {
   if (url.origin !== self.location.origin) return false;
   return /\.(css|js|png|svg|webp|woff2?|webmanifest)$/i.test(url.pathname)
-    || url.pathname.startsWith('/icons/');
+    || url.pathname.startsWith('/icons/')
+    || url.pathname.startsWith('/css/fonts/');
 }
 
 function isNavigationRequest(request) {
@@ -95,22 +81,21 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (isStaticAsset(url)) {
-    event.respondWith(cacheFirstStatic(request));
+    event.respondWith(networkFirstStatic(request));
     return;
   }
 
   if (url.origin === self.location.origin) {
-    event.respondWith(staleWhileRevalidate(request));
+    event.respondWith(networkFirstStatic(request));
     return;
   }
 
-  event.respondWith(networkOnlyNoStore(request));
+  event.respondWith(fetch(request).catch(() => new Response('', { status: 504 })));
 });
 
 async function networkOnlyNoStore(request) {
   try {
-    const res = await fetch(request);
-    return res;
+    return await fetch(request);
   } catch {
     return new Response('Requiere conexión', { status: 503, statusText: 'Offline' });
   }
@@ -133,9 +118,8 @@ async function networkFirstPage(request) {
   }
 }
 
-async function cacheFirstStatic(request) {
-  const cached = await caches.match(request);
-  if (cached) return cached;
+/** Siempre intenta red primero para JS/CSS (evita versiones viejas en caché). */
+async function networkFirstStatic(request) {
   try {
     const res = await fetch(request);
     if (res.ok) {
@@ -144,20 +128,9 @@ async function cacheFirstStatic(request) {
     }
     return res;
   } catch {
+    const cached = await caches.match(request);
     return cached || new Response('', { status: 504 });
   }
-}
-
-async function staleWhileRevalidate(request) {
-  const cache = await caches.open(RUNTIME_CACHE);
-  const cached = await cache.match(request);
-  const networkPromise = fetch(request)
-    .then(res => {
-      if (res.ok) cache.put(request, res.clone());
-      return res;
-    })
-    .catch(() => null);
-  return cached || networkPromise || new Response('', { status: 504 });
 }
 
 function notifyClients(data) {

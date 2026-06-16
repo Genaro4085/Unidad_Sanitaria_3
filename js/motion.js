@@ -26,13 +26,6 @@ const MotionModule = (() => {
     stagger(viewEl, '.trimestral-grid > *');
     stagger(viewEl, '.role-grid > *');
     stagger(viewEl, '.quick-grid > *');
-
-    const tbody = viewEl.querySelector('tbody');
-    if (tbody) {
-      [...tbody.querySelectorAll('tr')].forEach((row, i) => {
-        row.style.setProperty('--motion-delay', `${Math.min(i * 25, 300)}ms`);
-      });
-    }
   }
 
   function onViewChange(view) {

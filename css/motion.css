@@ -78,7 +78,7 @@
 
 /* ── Vistas ── */
 .view.active {
-  animation: us3-fade-up 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: us3-fade-up 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .motion-enter {
@@ -240,16 +240,9 @@
   color: var(--blue-900);
 }
 
-/* ── Tablas ── */
+/* ── Tablas: sin animación por fila (mejor rendimiento) ── */
 tbody tr {
   transition: background 0.18s ease;
-}
-
-.personal-table tbody tr,
-#licTbody tr,
-#auditTbody tr {
-  animation: us3-fade-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: var(--motion-delay, 0ms);
 }
 
 .contact-chip {
@@ -262,16 +255,7 @@ tbody tr {
 }
 
 /* ── Modales ── */
-.modal-overlay {
-  transition: opacity 0.25s ease, backdrop-filter 0.25s ease;
-  opacity: 0;
-}
-
-.modal-overlay.open {
-  opacity: 1;
-}
-
-.modal-overlay .modal {
+.modal-overlay.open .modal {
   animation: us3-scale-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 

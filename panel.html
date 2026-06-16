@@ -25,7 +25,10 @@
       document.documentElement.setAttribute('data-theme', t);
     })();
   </script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" />
+  <link rel="stylesheet" href="css/tabler-icons.min.css" />
   <link rel="stylesheet" href="css/design-system.css" />
   <link rel="stylesheet" href="css/inst-header.css" />
   <link rel="stylesheet" href="css/app.css" />
@@ -182,11 +185,11 @@
 
     <section class="view" id="view-laboratorios">
       <div class="view-toolbar no-print">
-        <div class="readonly-banner readonly-banner--mini hidden" id="readonlyBannerLab"><i class="ti ti-eye"></i> Solo lectura</div>
+        <div class="readonly-banner readonly-banner--mini hidden" id="readonlyBannerLab"><i class="ti ti-eye"></i> Solo lectura — iniciá sesión como admin para agregar estudios.</div>
         <div class="view-toolbar__actions">
           <button type="button" class="btn btn-secondary" onclick="ExportPrint.print('laboratorios')"><i class="ti ti-printer"></i> Imprimir</button>
           <button type="button" class="btn btn-secondary" onclick="ExportPrint.exportCsv('laboratorios')"><i class="ti ti-download"></i> Exportar CSV</button>
-          <button type="button" class="btn btn-primary edit-only" onclick="LaboratoriosModule.openAdd()"><i class="ti ti-plus"></i> Nuevo estudio</button>
+          <button type="button" class="btn btn-primary edit-only" id="btnLabAdd"><i class="ti ti-plus"></i> Nuevo estudio</button>
         </div>
       </div>
       <p class="dashboard-lead">Registro y seguimiento de estudios de laboratorio. Con sesión de administrador podés agregar y editar registros.</p>
@@ -237,11 +240,11 @@
 
     <section class="view" id="view-turnos">
       <div class="view-toolbar no-print">
-        <div class="readonly-banner readonly-banner--mini hidden" id="readonlyBanner3"><i class="ti ti-eye"></i> Solo lectura</div>
+        <div class="readonly-banner readonly-banner--mini hidden" id="readonlyBanner3"><i class="ti ti-eye"></i> Solo lectura — iniciá sesión como admin para agregar turnos.</div>
         <div class="view-toolbar__actions">
           <button type="button" class="btn btn-secondary" onclick="ExportPrint.print('turnos')"><i class="ti ti-printer"></i> Imprimir</button>
           <button type="button" class="btn btn-secondary" onclick="ExportPrint.exportCsv('turnos')"><i class="ti ti-download"></i> Exportar CSV</button>
-          <button type="button" class="btn btn-primary edit-only" onclick="AdminModule.openTurnoAdd()"><i class="ti ti-plus"></i> Nuevo turno</button>
+          <button type="button" class="btn btn-primary edit-only" id="btnTurnoAdd"><i class="ti ti-plus"></i> Nuevo turno</button>
         </div>
       </div>
       <div class="filter-bar">

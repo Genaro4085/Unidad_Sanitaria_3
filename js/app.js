@@ -472,6 +472,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('btnLogout')?.addEventListener('click', doLogout);
   document.getElementById('btnPortalLogout')?.addEventListener('click', doPortalLogout);
+  document.getElementById('btnTurnoAdd')?.addEventListener('click', () => {
+    if (typeof AdminModule !== 'undefined') AdminModule.openTurnoAdd();
+  });
+  document.getElementById('btnLabAdd')?.addEventListener('click', () => {
+    if (typeof LaboratoriosModule !== 'undefined') LaboratoriosModule.openAdd();
+  });
   document.getElementById('loginForm')?.addEventListener('submit', e => { e.preventDefault(); doLogin(); });
   document.getElementById('loginOverlay')?.addEventListener('click', e => {
     if (e.target === e.currentTarget) closeLogin();

@@ -759,6 +759,8 @@ const AdminModule = (() => {
 
   function openTurnoAdd() {
 
+    if (typeof canEdit === 'function' && !canEdit()) return;
+
     turnoEditId = null;
 
     document.getElementById('turnoModalTitle').textContent = 'Nuevo turno urgente';

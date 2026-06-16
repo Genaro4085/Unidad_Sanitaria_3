@@ -1,6 +1,6 @@
 /* US3 — Design System (Clinical Trust & Tech) */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap');
+/* Tipografías: cargadas desde index.html / panel.html (evita @import bloqueado por CSP). */
 
 :root,
 [data-theme="light"] {
