@@ -188,8 +188,8 @@
 
 .landing__login input:focus {
   outline: none;
-  border-color: var(--border-focus);
-  box-shadow: var(--state-focus-ring);
+  border-color: var(--blue-700);
+  box-shadow: 0 0 0 3px rgba(11, 168, 214, 0.2);
 }
 
 .landing__login .btn-primary {
@@ -206,9 +206,9 @@
   margin-top: 12px;
   padding: 10px 12px;
   border-radius: var(--radius-md);
-  background: var(--alert-error-bg);
-  border: 1px solid var(--alert-error-border);
-  color: var(--alert-error-text);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #b91c1c;
   font-size: 13px;
   line-height: 1.45;
 }
