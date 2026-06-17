@@ -1,4 +1,4 @@
-/* Módulo de control de turnos — vista institucional minimalista */
+/* Módulo de control de turnos — integrado al diseño del panel */
 const TurnosModule = (() => {
   const { ESTADO, ESTADO_LABELS, INTERCONSULTAS, PREQUIRURGICOS, TIPOS_IMAGEN,
     CIRUGIA_ESPECIALISTAS, createEmpty, normalize, resumen, flujoDetalle, fmtDate } = TurnosModel;
@@ -6,39 +6,32 @@ const TurnosModule = (() => {
   let editingId = null;
   let expandedId = null;
 
+  const PASO_BADGE = {
+    pendiente: ['badge-pend', 'Pendiente'],
+    completado: ['badge-ok', 'Realizado'],
+    no_quiere: ['badge-urg', 'No desea'],
+  };
+
+  const URG_BADGE = {
+    alta: ['badge-urg', 'Urgente'],
+    media: ['badge-warn', 'Moderada'],
+    baja: ['badge-ok', 'Control'],
+  };
+
+  const GEN_BADGE = {
+    pendiente: ['badge-pend', 'Pendiente'],
+    en_proceso: ['badge-done', 'En trámite'],
+    completado: ['badge-ok', 'Finalizado'],
+    no_quiere: ['badge-urg', 'No desea'],
+  };
+
   function canEditTurnos() {
     return typeof canEdit === 'function' && canEdit();
   }
 
-  /** Texto claro para lectura sin interpretar colores */
-  function estadoLegible(estado) {
-    const map = {
-      pendiente: 'Pendiente',
-      completado: 'Realizado',
-      no_quiere: 'No desea',
-    };
-    return map[estado] || estado;
-  }
-
-  function urgenciaTexto(u) {
-    const map = { alta: 'Urgente', media: 'Moderada', baja: 'Control' };
-    return map[u] || u;
-  }
-
-  function situacionTexto(r, turno) {
-    if (r.estadoGeneral === 'completado') return 'Recorrido completo — cirugía acordada';
-    if (r.estadoGeneral === 'no_quiere') return 'Interno con pasos no deseados';
-    if (r.estadoGeneral === 'pendiente') return 'Sin turnos registrados aún';
-    return r.etapa;
-  }
-
-  function pasoEstadoClass(estado) {
-    const map = {
-      pendiente: 'turno-tabla__fila--pend',
-      completado: 'turno-tabla__fila--done',
-      no_quiere: 'turno-tabla__fila--no',
-    };
-    return map[estado] || '';
+  function badgeHtml(map, key) {
+    const [cls, label] = map[key] || ['badge-pend', key];
+    return `<span class="badge ${cls}"><span class="badge-dot"></span>${label}</span>`;
   }
 
   function escapeHtml(s) {
@@ -78,93 +71,88 @@ const TurnosModule = (() => {
     return rows;
   }
 
-  function tablaPasosHtml(steps, col1 = 'Concepto') {
-    if (!steps.length) {
-      return `<p class="turno-detalle__vacio">Sin registros en esta etapa.</p>`;
-    }
+  function pasoItemHtml(step) {
+    const [cls] = PASO_BADGE[step.estado] || PASO_BADGE.pendiente;
     return `
-    <table class="turno-tabla">
-      <thead>
-        <tr><th>${col1}</th><th>Estado</th><th>Fecha</th></tr>
-      </thead>
-      <tbody>
-        ${steps.map(s => `
-        <tr class="${pasoEstadoClass(s.estado)}">
-          <td>${escapeHtml(s.label)}</td>
-          <td><strong>${escapeHtml(estadoLegible(s.estado))}</strong></td>
-          <td>${s.fecha ? escapeHtml(fmtDate(s.fecha)) : '—'}</td>
-        </tr>`).join('')}
-      </tbody>
-    </table>`;
+    <li class="turno-phase__item">
+      <span class="turno-phase__name">${escapeHtml(step.label)}</span>
+      <span class="turno-phase__meta">
+        <span class="badge ${cls}"><span class="badge-dot"></span>${PASO_BADGE[step.estado]?.[1] || step.estado}</span>
+        <span class="date-text">${step.fecha ? fmtDate(step.fecha) : '—'}</span>
+      </span>
+    </li>`;
   }
 
-  function detalleHtml(turno) {
-    const fases = flujoDetalle(turno);
-    const notas = turno.notas?.trim();
-    const secciones = [
-      { n: 1, titulo: 'Interconsultas con especialistas', steps: fases.find(f => f.id === 'interconsultas')?.steps || [], col: 'Especialidad' },
-      { n: 2, titulo: 'Prequirúrgicos (cardiología, anestesista, laboratorio)', steps: fases.find(f => f.id === 'prequirurgicos')?.steps || [], col: 'Estudio' },
-      { n: 3, titulo: 'Diagnóstico por imágenes', steps: fases.find(f => f.id === 'imagenes')?.steps || [], col: 'Estudio' },
-      { n: 4, titulo: 'Turno de cirugía', steps: fases.find(f => f.id === 'cirugia')?.steps || [], col: 'Especialista' },
-    ];
-
+  function phaseBlockHtml(fase) {
+    const done = fase.completados ?? 0;
+    const total = fase.total ?? 0;
     return `
-    <div class="turno-detalle" id="turno-detail-${turno.id}">
-      <p class="turno-detalle__intro">Detalle del recorrido. Estados posibles: <strong>Pendiente</strong>, <strong>Realizado</strong> o <strong>No desea</strong>.</p>
-      ${secciones.map(sec => `
-        <section class="turno-detalle__bloque">
-          <h4 class="turno-detalle__titulo">${sec.n}. ${escapeHtml(sec.titulo)}</h4>
-          ${tablaPasosHtml(sec.steps, sec.col)}
-        </section>
-      `).join('')}
-      ${notas ? `<div class="turno-detalle__notas"><span class="turno-fila__label">Observaciones</span><p>${escapeHtml(notas)}</p></div>` : ''}
-      ${canEditTurnos() ? `<p class="turno-detalle__edit"><button type="button" class="btn btn-secondary" onclick="TurnosModule.openEdit(${turno.id})"><i class="ti ti-edit"></i> Modificar datos</button></p>` : ''}
+    <div class="turno-phase">
+      <div class="turno-phase__head">
+        <h4 class="turno-phase__title"><i class="ti ${fase.icon}"></i> ${escapeHtml(fase.label)}</h4>
+        <span class="turno-phase__count">${done}/${total}</span>
+      </div>
+      <ul class="turno-phase__list">${fase.steps.map(pasoItemHtml).join('')}</ul>
     </div>`;
   }
 
-  function filaHtml(turno) {
+  function panelHtml(turno) {
+    const fases = flujoDetalle(turno);
+    const notas = turno.notas?.trim();
+    return `
+    <div class="turno-panel" id="turno-detail-${turno.id}">
+      <div class="turno-panel__grid">
+        ${fases.map(phaseBlockHtml).join('')}
+      </div>
+      ${notas ? `<p class="turno-panel__notas"><strong>Observaciones:</strong> ${escapeHtml(notas)}</p>` : ''}
+      ${canEditTurnos() ? `
+        <div class="turno-panel__foot">
+          <button type="button" class="btn btn-secondary btn-sm" data-turno-edit="${turno.id}">
+            <i class="ti ti-edit"></i> Editar registro
+          </button>
+        </div>` : ''}
+    </div>`;
+  }
+
+  function rowPairHtml(turno) {
     const r = resumen(turno);
+    const urgCls = turno.urgencia === 'alta' ? 'high' : turno.urgencia === 'media' ? 'med' : 'low';
     const isOpen = expandedId === turno.id;
-    const urgCls = turno.urgencia === 'alta' ? 'turno-fila--urg-alta' : '';
+    const editHidden = canEditTurnos() ? '' : ' hidden';
 
     return `
-    <article class="turno-fila ${urgCls}${isOpen ? ' turno-fila--open' : ''}" role="listitem" data-id="${turno.id}">
-      <div class="turno-fila__resumen">
-        <div class="turno-fila__col">
-          <span class="turno-fila__label">Interno</span>
-          <span class="turno-fila__valor turno-fila__valor--nombre">${escapeHtml(turno.paciente)}</span>
-        </div>
-        <div class="turno-fila__col">
-          <span class="turno-fila__label">Patología</span>
-          <span class="turno-fila__valor">${escapeHtml(turno.patologia)}</span>
-        </div>
-        <div class="turno-fila__col">
-          <span class="turno-fila__label">Prioridad</span>
-          <span class="turno-fila__valor">${escapeHtml(urgenciaTexto(turno.urgencia))}</span>
-        </div>
-        <div class="turno-fila__col turno-fila__col--wide">
-          <span class="turno-fila__label">Situación actual</span>
-          <span class="turno-fila__valor">${escapeHtml(situacionTexto(r, turno))}</span>
-        </div>
-      </div>
-      <div class="turno-fila__acciones">
-        <button type="button" class="turno-btn-detalle" onclick="TurnosModule.toggleExpand(${turno.id})" aria-expanded="${isOpen}">
-          ${isOpen ? 'Ocultar detalle' : 'Ver estado del recorrido'}
+    <tr class="turno-row urgency-${urgCls}${isOpen ? ' turno-row--open' : ''}" data-turno-id="${turno.id}">
+      <td class="col-expand" aria-hidden="true">
+        <span class="turno-expand-icon"><i class="ti ti-chevron-${isOpen ? 'up' : 'down'}"></i></span>
+      </td>
+      <td>
+        <strong>${escapeHtml(turno.paciente)}</strong>
+        <br><span class="date-text">${escapeHtml(turno.patologia)}</span>
+      </td>
+      <td>${escapeHtml(r.etapa)}</td>
+      <td>${badgeHtml(URG_BADGE, turno.urgencia)}</td>
+      <td>${badgeHtml(GEN_BADGE, r.estadoGeneral)}</td>
+      <td class="col-act">
+        <button type="button" class="edit-btn admin-edit-btn${editHidden}" data-turno-edit="${turno.id}" aria-label="Editar">
+          <i class="ti ti-edit"></i>
         </button>
-      </div>
-      ${isOpen ? detalleHtml(turno) : ''}
-    </article>`;
+      </td>
+    </tr>
+    ${isOpen ? `
+    <tr class="turno-expand-row" data-turno-expand="${turno.id}">
+      <td colspan="6">${panelHtml(turno)}</td>
+    </tr>` : ''}`;
   }
 
   function render() {
-    const list = document.getElementById('turnosList');
+    const tbody = document.getElementById('turnoTbody');
     const nodata = document.getElementById('turnoNodata');
-    if (!list) return;
+    if (!tbody) return;
 
     const rows = getFiltered();
 
     if (!rows.length) {
-      list.innerHTML = '';
+      tbody.innerHTML = '';
       if (nodata) nodata.style.display = 'flex';
       return;
     }
@@ -172,7 +160,7 @@ const TurnosModule = (() => {
 
     if (expandedId && !rows.some(t => t.id === expandedId)) expandedId = null;
 
-    list.innerHTML = rows.map(filaHtml).join('');
+    tbody.innerHTML = rows.map(rowPairHtml).join('');
   }
 
   function toggleExpand(id) {
@@ -180,7 +168,7 @@ const TurnosModule = (() => {
     render();
     if (expandedId) {
       requestAnimationFrame(() => {
-        document.getElementById(`turno-detail-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        document.querySelector(`[data-turno-expand="${id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       });
     }
   }
@@ -414,6 +402,16 @@ const TurnosModule = (() => {
     document.getElementById('turnoSearch')?.addEventListener('input', render);
     document.getElementById('turnoFilterUrg')?.addEventListener('change', render);
     document.getElementById('turnoFilterEst')?.addEventListener('change', render);
+
+    document.getElementById('turnoTbody')?.addEventListener('click', e => {
+      const edit = e.target.closest('[data-turno-edit]');
+      if (edit) {
+        openEdit(Number(edit.dataset.turnoEdit));
+        return;
+      }
+      const row = e.target.closest('tr.turno-row');
+      if (row) toggleExpand(Number(row.dataset.turnoId));
+    });
 
     document.getElementById('btnTurnoAddImg')?.addEventListener('click', () => {
       const list = document.getElementById('turnoImagenesList');
