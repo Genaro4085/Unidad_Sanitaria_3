@@ -321,10 +321,13 @@ const DataService = (() => {
         turnoCirugia: n.turnoCirugia,
         notas: n.notas || '',
       };
+      const interAplicada = TurnosModel.INTERCONSULTAS.find(({ key }) =>
+        TurnosModel.interconsultaAplicada(n.interconsultas[key])
+      );
       return {
         paciente: n.paciente || null,
         patologia: n.patologia || null,
-        especialista: n.turnoCirugia?.especialista || null,
+        especialista: interAplicada?.label || null,
         prequirurgico: n.prequirurgicos?.laboratorio?.fecha || null,
         anestesista: n.prequirurgicos?.anestesista?.fecha || null,
         cardiologia: n.prequirurgicos?.cardiologia?.fecha || null,

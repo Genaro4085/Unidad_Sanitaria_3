@@ -1639,7 +1639,20 @@ tbody tr:hover td { background: var(--row-hover); }
 .turno-section__hint { font-size: 12px; color: var(--slate); margin: 0 0 12px; }
 .turno-steps-grid { display: flex; flex-direction: column; gap: 8px; }
 .turno-step-row { display: grid; grid-template-columns: minmax(140px, 1.2fr) minmax(130px, 1fr) minmax(120px, 0.9fr); gap: 8px; align-items: center; padding: 8px 10px; border-radius: var(--radius-sm); background: var(--bg-card); border-left: 3px solid var(--slate-light, #94a3b8); }
-.turno-steps-grid--img .turno-step-row { grid-template-columns: minmax(110px, 0.9fr) minmax(120px, 1fr) minmax(130px, 0.9fr) minmax(120px, 0.9fr) auto; }
+.turno-steps-grid--inter .turno-step-row,
+.turno-steps-grid--inter .turno-inter-row {
+  grid-template-columns: minmax(140px, 1.2fr) minmax(130px, 1fr) minmax(120px, 0.9fr) auto;
+}
+.turno-add-row {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px;
+}
+.turno-add-row .form-select { flex: 1 1 200px; min-width: 180px; }
+.turno-section__empty, .turno-panel__empty {
+  margin: 0; padding: 10px 12px; font-size: 13px; color: var(--slate);
+  background: var(--input-bg); border-radius: var(--radius-sm);
+  border: 1px dashed var(--border-color);
+}
+.turno-step-row.turno-paso--proc { border-left-color: var(--color-primary-light, #0ba8d6); background: rgba(11, 168, 214, 0.06); }
 .turno-step-label { font-size: 13px; font-weight: 500; color: var(--navy-800); }
 .turno-step-row .form-input, .turno-step-row .form-select { padding: 6px 8px; font-size: 13px; }
 .turno-step-row.turno-paso--pend { border-left-color: #94a3b8; }

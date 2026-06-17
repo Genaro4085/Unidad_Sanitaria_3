@@ -1,13 +1,14 @@
 /* Módulo de control de turnos — integrado al diseño del panel */
 const TurnosModule = (() => {
-  const { ESTADO, ESTADO_LABELS, INTERCONSULTAS, PREQUIRURGICOS, TIPOS_IMAGEN,
-    CIRUGIA_ESPECIALISTAS, createEmpty, normalize, resumen, flujoDetalle, fmtDate } = TurnosModel;
+  const { ESTADO, ESTADO_LABELS, ESTADOS_INTERCONSULTA, INTERCONSULTAS, PREQUIRURGICOS, TIPOS_IMAGEN,
+    createEmpty, normalize, resumen, flujoDetalle, fmtDate, pasoEstadoLabel } = TurnosModel;
 
   let editingId = null;
   let expandedId = null;
 
   const PASO_BADGE = {
     pendiente: ['badge-pend', 'Pendiente'],
+    solicitado: ['badge-done', 'Solicitado'],
     completado: ['badge-ok', 'Realizado'],
     no_quiere: ['badge-urg', 'No desea'],
   };
@@ -45,10 +46,19 @@ const TurnosModule = (() => {
   function modalPasoClass(estado) {
     const map = {
       pendiente: 'turno-paso--pend',
+      solicitado: 'turno-paso--proc',
       completado: 'turno-paso--done',
       no_quiere: 'turno-paso--no',
     };
     return map[estado] || 'turno-paso--pend';
+  }
+
+  function getModalDraftTurno() {
+    const turno = editingId
+      ? normalize((appData.turnosUrgentes || []).find(t => t.id === editingId) || createEmpty(editingId))
+      : createEmpty(Date.now());
+    collectInterconsultasFromDom(turno);
+    return turno;
   }
 
   function getFiltered() {
@@ -72,18 +82,19 @@ const TurnosModule = (() => {
   }
 
   function pasoItemHtml(step) {
-    const [cls] = PASO_BADGE[step.estado] || PASO_BADGE.pendiente;
+    const [cls, label] = PASO_BADGE[step.estado] || ['badge-pend', pasoEstadoLabel(step.estado)];
     return `
     <li class="turno-phase__item">
       <span class="turno-phase__name">${escapeHtml(step.label)}</span>
       <span class="turno-phase__meta">
-        <span class="badge ${cls}"><span class="badge-dot"></span>${PASO_BADGE[step.estado]?.[1] || step.estado}</span>
+        <span class="badge ${cls}"><span class="badge-dot"></span>${label}</span>
         <span class="date-text">${step.fecha ? fmtDate(step.fecha) : '—'}</span>
       </span>
     </li>`;
   }
 
   function phaseBlockHtml(fase) {
+    if (!fase.steps.length) return '';
     const done = fase.completados ?? 0;
     const total = fase.total ?? 0;
     return `
@@ -97,12 +108,12 @@ const TurnosModule = (() => {
   }
 
   function panelHtml(turno) {
-    const fases = flujoDetalle(turno);
+    const fases = flujoDetalle(turno).filter(f => f.steps.length > 0);
     const notas = turno.notas?.trim();
     return `
     <div class="turno-panel" id="turno-detail-${turno.id}">
       <div class="turno-panel__grid">
-        ${fases.map(phaseBlockHtml).join('')}
+        ${fases.length ? fases.map(phaseBlockHtml).join('') : '<p class="turno-panel__empty">Sin etapas registradas aún.</p>'}
       </div>
       ${notas ? `<p class="turno-panel__notas"><strong>Observaciones:</strong> ${escapeHtml(notas)}</p>` : ''}
       ${canEditTurnos() ? `
@@ -175,29 +186,74 @@ const TurnosModule = (() => {
 
   /* ——— Modal edición (admin) ——— */
 
-  function stepRowHtml(prefix, label, step) {
+  function estadoOpts(estados, selected) {
+    return estados.map(k =>
+      `<option value="${k}"${selected === k ? ' selected' : ''}>${ESTADO_LABELS[k] || k}</option>`
+    ).join('');
+  }
+
+  function interconsultaRowHtml(key, label, step) {
     const e = step || TurnosModel.emptyStep();
-    const opts = Object.entries(ESTADO_LABELS)
-      .filter(([k]) => k !== 'programado')
-      .map(([k, lbl]) => {
-        const txt = k === 'completado' ? 'Realizado' : k === 'no_quiere' ? 'No desea' : lbl;
-        return `<option value="${k}"${e.estado === k ? ' selected' : ''}>${txt}</option>`;
-      })
-      .join('');
+    return `
+    <div class="turno-step-row turno-inter-row ${modalPasoClass(e.estado)}" data-inter-key="${key}">
+      <span class="turno-step-label">${escapeHtml(label)}</span>
+      <input type="date" class="form-input turno-step-fecha" data-field="fecha" value="${escapeHtml(e.fecha || '')}">
+      <select class="form-select turno-step-estado" data-field="estado">${estadoOpts(ESTADOS_INTERCONSULTA, e.estado)}</select>
+      <button type="button" class="btn btn-sm btn-ghost turno-inter-remove" aria-label="Quitar"><i class="ti ti-trash"></i></button>
+    </div>`;
+  }
+
+  function buildInterconsultasList(turno) {
+    const grid = document.getElementById('turnoInterconsultasGrid');
+    const select = document.getElementById('turnoInterAddSelect');
+    if (!grid) return;
+
+    const applied = INTERCONSULTAS.filter(({ key }) => turno.interconsultas[key]?.activa);
+    grid.innerHTML = applied.length
+      ? applied.map(({ key, label }) => interconsultaRowHtml(key, label, turno.interconsultas[key])).join('')
+      : '<p class="turno-section__empty">Agregue la interconsulta que corresponda al interno.</p>';
+
+    if (select) {
+      const available = INTERCONSULTAS.filter(({ key }) => !turno.interconsultas[key]?.activa);
+      select.innerHTML = '<option value="">Seleccionar especialidad…</option>'
+        + available.map(({ key, label }) => `<option value="${key}">${label}</option>`).join('');
+      select.disabled = !available.length;
+    }
+  }
+
+  function addInterconsulta(key) {
+    if (!key) return;
+    const turno = getModalDraftTurno();
+    turno.interconsultas[key] = { ...TurnosModel.emptyStep(), activa: true };
+    buildInterconsultasList(turno);
+  }
+
+  function collectInterconsultasFromDom(turno) {
+    INTERCONSULTAS.forEach(({ key }) => {
+      if (!turno.interconsultas[key]?.activa) {
+        turno.interconsultas[key] = TurnosModel.emptyStep();
+      }
+    });
+    document.querySelectorAll('#turnoInterconsultasGrid .turno-inter-row').forEach(row => {
+      const key = row.dataset.interKey;
+      if (!key) return;
+      turno.interconsultas[key] = {
+        activa: true,
+        fecha: row.querySelector('[data-field="fecha"]')?.value || '',
+        estado: row.querySelector('[data-field="estado"]')?.value || ESTADO.PENDIENTE,
+      };
+    });
+  }
+
+  function stepRowHtml(prefix, label, step, estados) {
+    const e = step || TurnosModel.emptyStep();
+    const opts = estadoOpts(estados || ['pendiente', 'solicitado', 'completado', 'no_quiere'], e.estado);
     return `
     <div class="turno-step-row ${modalPasoClass(e.estado)}" data-prefix="${prefix}">
       <span class="turno-step-label">${escapeHtml(label)}</span>
       <input type="date" class="form-input turno-step-fecha" data-field="fecha" value="${escapeHtml(e.fecha || '')}">
       <select class="form-select turno-step-estado" data-field="estado">${opts}</select>
     </div>`;
-  }
-
-  function buildInterconsultasGrid(turno) {
-    const grid = document.getElementById('turnoInterconsultasGrid');
-    if (!grid) return;
-    grid.innerHTML = INTERCONSULTAS.map(({ key, label }) =>
-      stepRowHtml(`interconsultas.${key}`, label, turno.interconsultas[key])
-    ).join('');
   }
 
   function buildPrequirurgicosGrid(turno) {
@@ -244,11 +300,10 @@ const TurnosModule = (() => {
     document.getElementById('turnoNotas').value = turno.notas || '';
 
     const cir = turno.turnoCirugia || {};
-    document.getElementById('turnoCirEsp').value = cir.especialista || CIRUGIA_ESPECIALISTAS[0];
     document.getElementById('turnoCirFecha').value = cir.fecha || '';
     document.getElementById('turnoCirEstado').value = cir.estado || ESTADO.PENDIENTE;
 
-    buildInterconsultasGrid(turno);
+    buildInterconsultasList(turno);
     buildPrequirurgicosGrid(turno);
     buildImagenesList(turno);
   }
@@ -297,11 +352,7 @@ const TurnosModule = (() => {
     turno.urgencia = document.getElementById('turnoUrgencia').value;
     turno.notas = document.getElementById('turnoNotas').value.trim();
 
-    document.querySelectorAll('#turnoInterconsultasGrid .turno-step-row').forEach(row => {
-      const prefix = row.dataset.prefix;
-      const key = prefix?.replace('interconsultas.', '');
-      if (key) turno.interconsultas[key] = readStepFromRow(row);
-    });
+    collectInterconsultasFromDom(turno);
 
     document.querySelectorAll('#turnoPrequirurgicosGrid .turno-step-row').forEach(row => {
       const prefix = row.dataset.prefix;
@@ -321,7 +372,6 @@ const TurnosModule = (() => {
     if (!turno.imagenes.length) turno.imagenes = [TurnosModel.emptyImagen()];
 
     turno.turnoCirugia = {
-      especialista: document.getElementById('turnoCirEsp').value,
       fecha: document.getElementById('turnoCirFecha').value,
       estado: document.getElementById('turnoCirEstado').value,
     };
@@ -386,11 +436,6 @@ const TurnosModule = (() => {
   }
 
   function bindEvents() {
-    const cirSel = document.getElementById('turnoCirEsp');
-    if (cirSel && !cirSel.options.length) {
-      cirSel.innerHTML = CIRUGIA_ESPECIALISTAS.map(e => `<option>${e}</option>`).join('');
-    }
-
     document.getElementById('turnoModalClose')?.addEventListener('click', closeModal);
     document.getElementById('turnoModalCancel')?.addEventListener('click', closeModal);
     document.getElementById('turnoModalSave')?.addEventListener('click', saveTurno);
@@ -411,6 +456,22 @@ const TurnosModule = (() => {
       }
       const row = e.target.closest('tr.turno-row');
       if (row) toggleExpand(Number(row.dataset.turnoId));
+    });
+
+    document.getElementById('btnTurnoAddInter')?.addEventListener('click', () => {
+      const key = document.getElementById('turnoInterAddSelect')?.value;
+      addInterconsulta(key);
+    });
+
+    document.getElementById('turnoInterconsultasGrid')?.addEventListener('click', e => {
+      const btn = e.target.closest('.turno-inter-remove');
+      if (!btn) return;
+      const row = btn.closest('.turno-inter-row');
+      const key = row?.dataset.interKey;
+      if (!key) return;
+      const turno = getModalDraftTurno();
+      turno.interconsultas[key] = TurnosModel.emptyStep();
+      buildInterconsultasList(turno);
     });
 
     document.getElementById('btnTurnoAddImg')?.addEventListener('click', () => {

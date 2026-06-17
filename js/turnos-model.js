@@ -2,16 +2,20 @@
 const TurnosModel = (() => {
   const ESTADO = {
     PENDIENTE: 'pendiente',
+    SOLICITADO: 'solicitado',
     COMPLETADO: 'completado',
     NO_QUIERE: 'no_quiere',
   };
 
   const ESTADO_LABELS = {
     pendiente: 'Pendiente',
-    completado: 'Completado',
-    no_quiere: 'No quiere',
+    solicitado: 'Solicitado',
+    completado: 'Realizado',
+    no_quiere: 'No desea',
     programado: 'Programado',
   };
+
+  const ESTADOS_INTERCONSULTA = ['pendiente', 'solicitado', 'completado', 'no_quiere'];
 
   const INTERCONSULTAS = [
     { key: 'cirugia_general', label: 'Cirugía general' },
@@ -53,7 +57,15 @@ const TurnosModel = (() => {
   ];
 
   function emptyStep() {
-    return { fecha: '', estado: ESTADO.PENDIENTE };
+    return { fecha: '', estado: ESTADO.PENDIENTE, activa: false };
+  }
+
+  function normalizeStep(step) {
+    return { ...emptyStep(), ...(step || {}) };
+  }
+
+  function interconsultaAplicada(step) {
+    return !!step?.activa;
   }
 
   function emptyImagen() {
@@ -82,7 +94,7 @@ const TurnosModel = (() => {
       interconsultas: emptyInterconsultas(),
       prequirurgicos: emptyPrequirurgicos(),
       imagenes: [emptyImagen()],
-      turnoCirugia: { especialista: 'Cirugía general', fecha: '', estado: ESTADO.PENDIENTE },
+      turnoCirugia: { fecha: '', estado: ESTADO.PENDIENTE },
     };
   }
 
@@ -100,14 +112,26 @@ const TurnosModel = (() => {
     };
   }
 
+  function finalizeInterconsultas(interconsultas) {
+    const o = {};
+    INTERCONSULTAS.forEach(({ key }) => {
+      const step = normalizeStep(interconsultas?.[key]);
+      if (step.activa || step.fecha || (step.estado && step.estado !== ESTADO.PENDIENTE)) {
+        step.activa = true;
+      }
+      o[key] = step;
+    });
+    return o;
+  }
+
   function normalize(turno) {
     if (!turno || typeof turno !== 'object') return createEmpty(1);
 
     if (turno.v === 2 || turno.interconsultas) {
-      return {
+      const t = {
         ...createEmpty(turno.id),
         ...turno,
-        interconsultas: { ...emptyInterconsultas(), ...(turno.interconsultas || {}) },
+        interconsultas: finalizeInterconsultas(turno.interconsultas),
         prequirurgicos: { ...emptyPrequirurgicos(), ...(turno.prequirurgicos || {}) },
         imagenes: Array.isArray(turno.imagenes) && turno.imagenes.length
           ? turno.imagenes.map(img => ({ ...emptyImagen(), ...img }))
@@ -115,6 +139,8 @@ const TurnosModel = (() => {
         turnoCirugia: { ...createEmpty().turnoCirugia, ...(turno.turnoCirugia || {}) },
         v: 2,
       };
+      delete t.turnoCirugia.especialista;
+      return t;
     }
 
     const t = createEmpty(turno.id);
@@ -127,14 +153,22 @@ const TurnosModel = (() => {
     t.prequirurgicos.anestesista = legacyStep(turno.anestesista, turno.estado);
     t.prequirurgicos.laboratorio = legacyStep(turno.prequirurgico, turno.estado);
 
-    if (turno.especialista) {
-      const espKey = INTERCONSULTAS.find(i =>
-        i.label.toLowerCase() === String(turno.especialista).toLowerCase()
-      );
-      if (espKey) {
-        t.interconsultas[espKey.key] = legacyStep('', turno.estado);
+    INTERCONSULTAS.forEach(({ key }) => {
+      const step = normalizeStep(t.interconsultas[key]);
+      if (turno.especialista) {
+        const espKey = INTERCONSULTAS.find(i =>
+          i.label.toLowerCase() === String(turno.especialista).toLowerCase()
+        );
+        if (espKey?.key === key) {
+          step.activa = true;
+          step.estado = mapLegacyEstado(turno.estado, false);
+        }
       }
-    }
+      if (step.fecha || (step.estado && step.estado !== ESTADO.PENDIENTE)) {
+        step.activa = true;
+      }
+      t.interconsultas[key] = step;
+    });
 
     if (turno.imagenes) {
       t.imagenes = [{
@@ -145,11 +179,11 @@ const TurnosModel = (() => {
     }
 
     t.turnoCirugia = {
-      especialista: turno.especialista || 'Cirugía general',
       fecha: '',
       estado: mapLegacyEstado(turno.estado, false),
     };
 
+    t.interconsultas = finalizeInterconsultas(t.interconsultas);
     t.v = 2;
     return t;
   }
@@ -160,9 +194,14 @@ const TurnosModel = (() => {
 
   function allSteps(turno) {
     const steps = [];
-    INTERCONSULTAS.forEach(({ key }) => steps.push(turno.interconsultas?.[key]));
+    INTERCONSULTAS.forEach(({ key }) => {
+      const s = turno.interconsultas?.[key];
+      if (interconsultaAplicada(s)) steps.push(s);
+    });
     PREQUIRURGICOS.forEach(({ key }) => steps.push(turno.prequirurgicos?.[key]));
-    (turno.imagenes || []).forEach(img => steps.push(img));
+    (turno.imagenes || []).forEach(img => {
+      if (img.fecha || img.estado !== ESTADO.PENDIENTE || img.detalle) steps.push(img);
+    });
     steps.push(turno.turnoCirugia);
     return steps.filter(Boolean);
   }
@@ -175,18 +214,21 @@ const TurnosModel = (() => {
     const pct = total ? Math.round((completados / total) * 100) : 0;
 
     let etapa = 'Interconsultas';
-    const pendingInter = INTERCONSULTAS.some(({ key }) =>
-      turno.interconsultas?.[key]?.estado === ESTADO.PENDIENTE
-    );
+    const pendingInter = INTERCONSULTAS.some(({ key }) => {
+      const s = turno.interconsultas?.[key];
+      return interconsultaAplicada(s) && (s.estado === ESTADO.PENDIENTE || s.estado === ESTADO.SOLICITADO);
+    });
+    const hasInter = INTERCONSULTAS.some(({ key }) => interconsultaAplicada(turno.interconsultas?.[key]));
     const pendingPre = PREQUIRURGICOS.some(({ key }) =>
       turno.prequirurgicos?.[key]?.estado === ESTADO.PENDIENTE
     );
     const pendingImg = (turno.imagenes || []).some(i => i.estado === ESTADO.PENDIENTE);
     const cir = turno.turnoCirugia || {};
 
-    if (cir.estado === ESTADO.COMPLETADO) etapa = 'Cirugía acordada';
-    else if (cir.estado === ESTADO.NO_QUIERE) etapa = 'No quiere cirugía';
-    else if (!pendingInter && !pendingPre && !pendingImg) etapa = 'Turno quirúrgico';
+    if (cir.estado === ESTADO.COMPLETADO) etapa = 'Intervención quirúrgica acordada';
+    else if (cir.estado === ESTADO.NO_QUIERE) etapa = 'No desea intervención';
+    else if (!hasInter) etapa = 'Sin interconsultas asignadas';
+    else if (!pendingInter && !pendingPre && !pendingImg) etapa = 'Turno intervención quirúrgica';
     else if (!pendingInter && !pendingPre) etapa = 'Diagnóstico por imágenes';
     else if (!pendingInter) etapa = 'Prequirúrgicos';
     else if (noQuiere) etapa = 'Con pasos rechazados';
@@ -214,14 +256,14 @@ const TurnosModel = (() => {
     { id: 'interconsultas', label: 'Interconsultas', short: 'Interconsultas', icon: 'ti-stethoscope' },
     { id: 'prequirurgicos', label: 'Prequirúrgicos', short: 'Prequirúrgicos', icon: 'ti-heart-rate-monitor' },
     { id: 'imagenes', label: 'Diagnóstico por imágenes', short: 'Imágenes', icon: 'ti-photo-scan' },
-    { id: 'cirugia', label: 'Turno quirúrgico', short: 'Cirugía', icon: 'ti-calendar-event' },
+    { id: 'cirugia', label: 'Turno intervención quirúrgica', short: 'Intervención', icon: 'ti-calendar-event' },
   ];
 
   function estadoFase(steps) {
     if (!steps.length) return 'pendiente';
     if (steps.every(s => s.estado === ESTADO.COMPLETADO)) return 'completado';
     if (steps.some(s => s.estado === ESTADO.NO_QUIERE)) return 'no_quiere';
-    if (steps.some(s => s.estado === ESTADO.COMPLETADO || s.fecha)) return 'en_proceso';
+    if (steps.some(s => s.estado === ESTADO.SOLICITADO || s.estado === ESTADO.COMPLETADO || s.fecha)) return 'en_proceso';
     return 'pendiente';
   }
 
@@ -232,12 +274,13 @@ const TurnosModel = (() => {
         id: 'interconsultas',
         label: 'Interconsultas con especialistas',
         icon: 'ti-stethoscope',
-        steps: INTERCONSULTAS.map(({ key, label }) => ({
-          key,
-          label,
-          fecha: t.interconsultas[key]?.fecha || '',
-          estado: t.interconsultas[key]?.estado || ESTADO.PENDIENTE,
-        })),
+        steps: INTERCONSULTAS.filter(({ key }) => interconsultaAplicada(t.interconsultas[key]))
+          .map(({ key, label }) => ({
+            key,
+            label,
+            fecha: t.interconsultas[key]?.fecha || '',
+            estado: t.interconsultas[key]?.estado || ESTADO.PENDIENTE,
+          })),
       },
       {
         id: 'prequirurgicos',
@@ -254,7 +297,9 @@ const TurnosModel = (() => {
         id: 'imagenes',
         label: 'Diagnóstico por imágenes',
         icon: 'ti-photo-scan',
-        steps: (t.imagenes || []).map((img, i) => ({
+        steps: (t.imagenes || [])
+          .filter(img => img.fecha || img.estado !== ESTADO.PENDIENTE || img.detalle)
+          .map((img, i) => ({
           key: `img-${i}`,
           label: tipoImagenLabel(img.tipo) + (img.detalle ? ` — ${img.detalle}` : ''),
           fecha: img.fecha || '',
@@ -263,11 +308,11 @@ const TurnosModel = (() => {
       },
       {
         id: 'cirugia',
-        label: 'Acordar turno de cirugía',
+        label: 'Turno intervención quirúrgica',
         icon: 'ti-calendar-event',
         steps: [{
           key: 'cirugia',
-          label: t.turnoCirugia?.especialista || 'Especialista',
+          label: 'Fecha cirugía',
           fecha: t.turnoCirugia?.fecha || '',
           estado: t.turnoCirugia?.estado || ESTADO.PENDIENTE,
         }],
@@ -300,11 +345,13 @@ const TurnosModel = (() => {
   return {
     ESTADO,
     ESTADO_LABELS,
+    ESTADOS_INTERCONSULTA,
     INTERCONSULTAS,
     PREQUIRURGICOS,
     TIPOS_IMAGEN,
     CIRUGIA_ESPECIALISTAS,
     FASES,
+    interconsultaAplicada,
     createEmpty,
     emptyStep,
     emptyImagen,

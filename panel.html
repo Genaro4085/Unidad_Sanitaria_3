@@ -31,7 +31,7 @@
   <link rel="stylesheet" href="css/tabler-icons.min.css" />
   <link rel="stylesheet" href="css/design-system.css" />
   <link rel="stylesheet" href="css/inst-header.css" />
-  <link rel="stylesheet" href="css/app.css?v=turnos5" />
+  <link rel="stylesheet" href="css/app.css?v=turnos6" />
   <link rel="stylesheet" href="css/motion.css" />
   <link rel="stylesheet" href="css/pwa.css" />
 </head>
@@ -561,8 +561,12 @@
       </section>
       <section class="turno-section">
         <h3 class="turno-section__title"><i class="ti ti-stethoscope"></i> Interconsultas con especialistas</h3>
-        <p class="turno-section__hint">Indique fecha y estado de cada interconsulta según corresponda al paciente.</p>
-        <div id="turnoInterconsultasGrid" class="turno-steps-grid"></div>
+        <p class="turno-section__hint">Agregá solo la interconsulta que corresponda. En consulta se verá únicamente la aplicada.</p>
+        <div id="turnoInterconsultasGrid" class="turno-steps-grid turno-steps-grid--inter"></div>
+        <div class="turno-add-row">
+          <select id="turnoInterAddSelect" class="form-select"><option value="">Seleccionar especialidad…</option></select>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnTurnoAddInter"><i class="ti ti-plus"></i> Agregar interconsulta</button>
+        </div>
       </section>
       <section class="turno-section">
         <h3 class="turno-section__title"><i class="ti ti-heart-rate-monitor"></i> Prequirúrgicos</h3>
@@ -576,11 +580,10 @@
         <button type="button" class="btn btn-secondary btn-sm" id="btnTurnoAddImg"><i class="ti ti-plus"></i> Agregar estudio</button>
       </section>
       <section class="turno-section">
-        <h3 class="turno-section__title"><i class="ti ti-calendar-event"></i> Interconsulta final — acordar turno de cirugía</h3>
+        <h3 class="turno-section__title"><i class="ti ti-calendar-event"></i> Turno intervención quirúrgica</h3>
         <div class="form-grid">
-          <div class="form-row"><label for="turnoCirEsp">Especialista</label><select id="turnoCirEsp"></select></div>
-          <div class="form-row"><label for="turnoCirFecha">Fecha acordada</label><input type="date" id="turnoCirFecha" /></div>
-          <div class="form-row"><label for="turnoCirEstado">Estado</label><select id="turnoCirEstado"><option value="pendiente">Pendiente</option><option value="completado">Completado</option><option value="no_quiere">No quiere</option></select></div>
+          <div class="form-row"><label for="turnoCirFecha">Fecha cirugía</label><input type="date" id="turnoCirFecha" /></div>
+          <div class="form-row"><label for="turnoCirEstado">Estado</label><select id="turnoCirEstado"><option value="pendiente">Pendiente</option><option value="solicitado">Solicitado</option><option value="completado">Realizado</option><option value="no_quiere">No desea</option></select></div>
         </div>
       </section>
       <div class="form-row"><label for="turnoNotas">Notas</label><textarea id="turnoNotas" rows="2" placeholder="Observaciones generales"></textarea></div>
@@ -647,9 +650,9 @@
 <script src="js/licencias-default.js"></script>
 <script src="js/licencias.js"></script>
 <script src="js/laboratorios.js"></script>
-<script src="js/turnos-model.js?v=turnos5"></script>
-<script src="js/turnos.js?v=turnos5"></script>
-<script src="js/administracion.js?v=turnos5"></script>
+<script src="js/turnos-model.js?v=turnos6"></script>
+<script src="js/turnos.js?v=turnos6"></script>
+<script src="js/administracion.js?v=turnos6"></script>
 <script src="js/personal.js"></script>
 </body>
 </html>
