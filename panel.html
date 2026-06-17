@@ -31,7 +31,7 @@
   <link rel="stylesheet" href="css/tabler-icons.min.css" />
   <link rel="stylesheet" href="css/design-system.css" />
   <link rel="stylesheet" href="css/inst-header.css" />
-  <link rel="stylesheet" href="css/app.css?v=turnos2" />
+  <link rel="stylesheet" href="css/app.css?v=turnos3" />
   <link rel="stylesheet" href="css/motion.css" />
   <link rel="stylesheet" href="css/pwa.css" />
 </head>
@@ -241,7 +241,7 @@
 
     <section class="view" id="view-turnos">
       <div class="view-toolbar no-print">
-        <div class="readonly-banner readonly-banner--mini hidden" id="readonlyBanner3"><i class="ti ti-eye"></i> Solo lectura — iniciá sesión como admin para agregar turnos.</div>
+        <div class="readonly-banner readonly-banner--mini hidden" id="readonlyBanner3"><i class="ti ti-eye"></i> Modo consulta — podés ver el recorrido de cada interno con <strong>Ver recorrido</strong>. Solo el administrador puede editar.</div>
         <div class="view-toolbar__actions">
           <button type="button" class="btn btn-secondary" onclick="ExportPrint.print('turnos')"><i class="ti ti-printer"></i> Imprimir</button>
           <button type="button" class="btn btn-secondary" onclick="ExportPrint.exportCsv('turnos')"><i class="ti ti-download"></i> Exportar CSV</button>
@@ -254,18 +254,16 @@
         <select id="turnoFilterUrg"><option value="">Toda urgencia</option><option value="alta">Urgente</option><option value="media">Moderada</option><option value="baja">Control</option></select>
         <select id="turnoFilterEst"><option value="">Todos los estados</option><option value="pendiente">Pendiente</option><option value="en_proceso">En proceso</option><option value="completado">Completado</option><option value="no_quiere">No quiere</option></select>
       </div>
-      <div class="table-card">
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Interno / Patología</th><th>Progreso</th><th>Etapa actual</th><th>Urgencia</th><th>Estado</th><th>Turno cirugía</th><th></th>
-              </tr>
-            </thead>
-            <tbody id="turnoTbody"></tbody>
-          </table>
-          <div class="no-data" id="turnoNodata" style="display:none"><i class="ti ti-calendar-off"></i>Sin turnos.</div>
-        </div>
+      <p class="dashboard-lead turnos-lead">Seguimiento del recorrido quirúrgico de cada interno. Tocá <strong>Ver recorrido</strong> en cualquier ficha para ver qué turnos se realizaron, cuáles están pendientes o rechazados.</p>
+      <div class="turnos-legend no-print" aria-label="Leyenda de estados">
+        <span class="turnos-legend__item turnos-legend__item--done"><i class="ti ti-check"></i> Realizado</span>
+        <span class="turnos-legend__item turnos-legend__item--proc"><i class="ti ti-loader"></i> En curso</span>
+        <span class="turnos-legend__item turnos-legend__item--pend"><i class="ti ti-clock"></i> Pendiente</span>
+        <span class="turnos-legend__item turnos-legend__item--no"><i class="ti ti-x"></i> No quiere</span>
+      </div>
+      <div class="turnos-board">
+        <div id="turnosList" class="turnos-list" role="list"></div>
+        <div class="no-data" id="turnoNodata" style="display:none"><i class="ti ti-calendar-off"></i>Sin turnos registrados.</div>
       </div>
     </section>
 
@@ -641,9 +639,9 @@
 <script src="js/licencias-default.js"></script>
 <script src="js/licencias.js"></script>
 <script src="js/laboratorios.js"></script>
-<script src="js/turnos-model.js?v=turnos2"></script>
-<script src="js/turnos.js?v=turnos2"></script>
-<script src="js/administracion.js?v=turnos2"></script>
+<script src="js/turnos-model.js?v=turnos3"></script>
+<script src="js/turnos.js?v=turnos3"></script>
+<script src="js/administracion.js?v=turnos3"></script>
 <script src="js/personal.js"></script>
 </body>
 </html>

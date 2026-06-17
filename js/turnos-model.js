@@ -210,6 +210,93 @@ const TurnosModel = (() => {
     return TIPOS_IMAGEN.find(t => t.value === value)?.label || value || '—';
   }
 
+  const FASES = [
+    { id: 'interconsultas', label: 'Interconsultas', short: 'Interconsultas', icon: 'ti-stethoscope' },
+    { id: 'prequirurgicos', label: 'Prequirúrgicos', short: 'Prequirúrgicos', icon: 'ti-heart-rate-monitor' },
+    { id: 'imagenes', label: 'Diagnóstico por imágenes', short: 'Imágenes', icon: 'ti-photo-scan' },
+    { id: 'cirugia', label: 'Turno quirúrgico', short: 'Cirugía', icon: 'ti-calendar-event' },
+  ];
+
+  function estadoFase(steps) {
+    if (!steps.length) return 'pendiente';
+    if (steps.every(s => s.estado === ESTADO.COMPLETADO)) return 'completado';
+    if (steps.some(s => s.estado === ESTADO.NO_QUIERE)) return 'no_quiere';
+    if (steps.some(s => s.estado === ESTADO.COMPLETADO || s.fecha)) return 'en_proceso';
+    return 'pendiente';
+  }
+
+  function flujoDetalle(turno) {
+    const t = normalize(turno);
+    const fases = [
+      {
+        id: 'interconsultas',
+        label: 'Interconsultas con especialistas',
+        icon: 'ti-stethoscope',
+        steps: INTERCONSULTAS.map(({ key, label }) => ({
+          key,
+          label,
+          fecha: t.interconsultas[key]?.fecha || '',
+          estado: t.interconsultas[key]?.estado || ESTADO.PENDIENTE,
+        })),
+      },
+      {
+        id: 'prequirurgicos',
+        label: 'Prequirúrgicos',
+        icon: 'ti-heart-rate-monitor',
+        steps: PREQUIRURGICOS.map(({ key, label }) => ({
+          key,
+          label,
+          fecha: t.prequirurgicos[key]?.fecha || '',
+          estado: t.prequirurgicos[key]?.estado || ESTADO.PENDIENTE,
+        })),
+      },
+      {
+        id: 'imagenes',
+        label: 'Diagnóstico por imágenes',
+        icon: 'ti-photo-scan',
+        steps: (t.imagenes || []).map((img, i) => ({
+          key: `img-${i}`,
+          label: tipoImagenLabel(img.tipo) + (img.detalle ? ` — ${img.detalle}` : ''),
+          fecha: img.fecha || '',
+          estado: img.estado || ESTADO.PENDIENTE,
+        })),
+      },
+      {
+        id: 'cirugia',
+        label: 'Acordar turno de cirugía',
+        icon: 'ti-calendar-event',
+        steps: [{
+          key: 'cirugia',
+          label: t.turnoCirugia?.especialista || 'Especialista',
+          fecha: t.turnoCirugia?.fecha || '',
+          estado: t.turnoCirugia?.estado || ESTADO.PENDIENTE,
+        }],
+      },
+    ];
+
+    return fases.map(f => {
+      const completados = f.steps.filter(s => s.estado === ESTADO.COMPLETADO).length;
+      const rechazados = f.steps.filter(s => s.estado === ESTADO.NO_QUIERE).length;
+      return {
+        ...f,
+        completados,
+        rechazados,
+        total: f.steps.length,
+        estadoFase: estadoFase(f.steps),
+      };
+    });
+  }
+
+  function pasoIcon(estado) {
+    if (estado === ESTADO.COMPLETADO) return 'ti-check';
+    if (estado === ESTADO.NO_QUIERE) return 'ti-x';
+    return 'ti-clock';
+  }
+
+  function pasoEstadoLabel(estado) {
+    return ESTADO_LABELS[estado] || estado;
+  }
+
   return {
     ESTADO,
     ESTADO_LABELS,
@@ -217,6 +304,7 @@ const TurnosModel = (() => {
     PREQUIRURGICOS,
     TIPOS_IMAGEN,
     CIRUGIA_ESPECIALISTAS,
+    FASES,
     createEmpty,
     emptyStep,
     emptyImagen,
@@ -224,6 +312,9 @@ const TurnosModel = (() => {
     normalizeAll,
     resumen,
     allSteps,
+    flujoDetalle,
+    pasoIcon,
+    pasoEstadoLabel,
     fmtDate,
     tipoImagenLabel,
   };
