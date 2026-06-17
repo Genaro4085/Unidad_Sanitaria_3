@@ -316,7 +316,13 @@ function updateAuthUI() {
     el.classList.toggle('hidden', !canEdit());
   });
 
-  const urgCount = appData.turnosUrgentes.filter(t => t.urgencia === 'alta' && t.estado !== 'completado').length;
+  const urgCount = appData.turnosUrgentes.filter(t => {
+    if (t.urgencia !== 'alta') return false;
+    if (typeof TurnosModel !== 'undefined') {
+      return TurnosModel.resumen(TurnosModel.normalize(t)).estadoGeneral !== 'completado';
+    }
+    return t.estado !== 'completado';
+  }).length;
   const el = document.getElementById('turnoUrgCount');
   if (el) el.textContent = urgCount;
 
@@ -350,7 +356,8 @@ function navigate(view) {
   if (view === 'dashboard' && typeof DashboardModule !== 'undefined') DashboardModule.render();
   if (view === 'licencias' && typeof LicenciasModule !== 'undefined') LicenciasModule.init();
   if (view === 'laboratorios' && typeof LaboratoriosModule !== 'undefined') LaboratoriosModule.init();
-  if (['patologias', 'trimestral', 'turnos'].includes(view) && typeof AdminModule !== 'undefined') AdminModule.show(view);
+  if (['patologias', 'trimestral'].includes(view) && typeof AdminModule !== 'undefined') AdminModule.show(view);
+  if (view === 'turnos' && typeof TurnosModule !== 'undefined') TurnosModule.show();
   if (view === 'auditoria' && typeof AuditModule !== 'undefined') AuditModule.init();
   if (view === 'personal' && typeof PersonalModule !== 'undefined') PersonalModule.init();
   if (['administracion', 'personal', 'auditoria', 'configuracion'].includes(view)) syncAdminSubnav(view);
@@ -485,7 +492,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btnLogout')?.addEventListener('click', doLogout);
   document.getElementById('btnPortalLogout')?.addEventListener('click', doPortalLogout);
   document.getElementById('btnTurnoAdd')?.addEventListener('click', () => {
-    if (typeof AdminModule !== 'undefined') AdminModule.openTurnoAdd();
+    if (typeof TurnosModule !== 'undefined') TurnosModule.openAdd();
   });
   document.getElementById('btnLabAdd')?.addEventListener('click', () => {
     if (typeof LaboratoriosModule !== 'undefined') LaboratoriosModule.openAdd();

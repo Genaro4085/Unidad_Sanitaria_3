@@ -31,7 +31,7 @@
   <link rel="stylesheet" href="css/tabler-icons.min.css" />
   <link rel="stylesheet" href="css/design-system.css" />
   <link rel="stylesheet" href="css/inst-header.css" />
-  <link rel="stylesheet" href="css/app.css" />
+  <link rel="stylesheet" href="css/app.css?v=turnos2" />
   <link rel="stylesheet" href="css/motion.css" />
   <link rel="stylesheet" href="css/pwa.css" />
 </head>
@@ -252,15 +252,14 @@
         <div class="search-wrap"><i class="ti ti-search"></i><input type="text" id="turnoSearch" placeholder="Buscar interno o patología…" /></div>
         <span class="filter-stat">Urgentes: <strong id="turnoUrgCount">0</strong></span>
         <select id="turnoFilterUrg"><option value="">Toda urgencia</option><option value="alta">Urgente</option><option value="media">Moderada</option><option value="baja">Control</option></select>
-        <select id="turnoFilterEst"><option value="">Todos los estados</option><option value="pendiente">Pendiente</option><option value="programado">Programado</option><option value="completado">Completado</option></select>
+        <select id="turnoFilterEst"><option value="">Todos los estados</option><option value="pendiente">Pendiente</option><option value="en_proceso">En proceso</option><option value="completado">Completado</option><option value="no_quiere">No quiere</option></select>
       </div>
       <div class="table-card">
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Interno / Patología</th><th>Especialista</th><th>Prequirúrgico</th><th>Anestesista</th>
-                <th>Cardiología</th><th>Imágenes</th><th>Urgencia</th><th>Estado</th><th></th>
+                <th>Interno / Patología</th><th>Progreso</th><th>Etapa actual</th><th>Urgencia</th><th>Estado</th><th>Turno cirugía</th><th></th>
               </tr>
             </thead>
             <tbody id="turnoTbody"></tbody>
@@ -540,32 +539,50 @@
 </div>
 
 <div class="modal-overlay" id="turnoModal" role="dialog" aria-modal="true">
-  <div class="modal">
+  <div class="modal modal--wide modal--turnos">
     <div class="modal-header">
-      <h2 class="modal-title" id="turnoModalTitle">Nuevo turno urgente</h2>
-      <button type="button" class="modal-close" onclick="AdminModule.closeTurnoModal()" aria-label="Cerrar"><i class="ti ti-x"></i></button>
+      <h2 class="modal-title" id="turnoModalTitle">Nuevo control de turno</h2>
+      <button type="button" class="modal-close" id="turnoModalClose" aria-label="Cerrar"><i class="ti ti-x"></i></button>
     </div>
-    <p class="form-section">Interno</p>
-    <div class="form-row"><label for="turnoPaciente">Identificación</label><input type="text" id="turnoPaciente" placeholder="Ej: Interno A-042" /></div>
-    <div class="form-row"><label for="turnoPatologia">Diagnóstico</label><input type="text" id="turnoPatologia" placeholder="Ej: Hernia inguinal" /></div>
-    <div class="form-row"><label for="turnoEsp">Especialista</label><select id="turnoEsp"><option>Cirugía general</option><option>Traumatología</option><option>Cardiología</option><option>Anestesiología</option><option>Diagnóstico por imágenes</option><option>Neurología</option><option>Otro</option></select></div>
-    <p class="form-section">Turnos</p>
-    <div class="form-grid">
-      <div class="form-row"><label for="turnoPrequir">Prequirúrgico</label><input type="date" id="turnoPrequir" /></div>
-      <div class="form-row"><label for="turnoAnest">Anestesista</label><input type="date" id="turnoAnest" /></div>
-      <div class="form-row"><label for="turnoCardio">Cardiología</label><input type="date" id="turnoCardio" /></div>
-      <div class="form-row"><label for="turnoImg">Imágenes</label><input type="date" id="turnoImg" /></div>
+    <div class="turno-form">
+      <section class="turno-section">
+        <h3 class="turno-section__title"><i class="ti ti-user"></i> Interno / patología</h3>
+        <div class="form-grid">
+          <div class="form-row"><label for="turnoPaciente">Identificación del interno</label><input type="text" id="turnoPaciente" placeholder="Ej: Interno A-042" /></div>
+          <div class="form-row"><label for="turnoPatologia">Diagnóstico / patología</label><input type="text" id="turnoPatologia" placeholder="Ej: Hernia inguinal" /></div>
+          <div class="form-row"><label for="turnoUrgencia">Urgencia</label><select id="turnoUrgencia"><option value="alta">Urgente</option><option value="media" selected>Moderada</option><option value="baja">Control</option></select></div>
+        </div>
+      </section>
+      <section class="turno-section">
+        <h3 class="turno-section__title"><i class="ti ti-stethoscope"></i> Interconsultas con especialistas</h3>
+        <p class="turno-section__hint">Indique fecha y estado de cada interconsulta según corresponda al paciente.</p>
+        <div id="turnoInterconsultasGrid" class="turno-steps-grid"></div>
+      </section>
+      <section class="turno-section">
+        <h3 class="turno-section__title"><i class="ti ti-heart-rate-monitor"></i> Prequirúrgicos</h3>
+        <p class="turno-section__hint">Cardiología → Anestesista → Laboratorio (en ese orden).</p>
+        <div id="turnoPrequirurgicosGrid" class="turno-steps-grid turno-steps-grid--pre"></div>
+      </section>
+      <section class="turno-section">
+        <h3 class="turno-section__title"><i class="ti ti-photo-scan"></i> Diagnóstico por imágenes</h3>
+        <p class="turno-section__hint">Tipo de estudio, fecha y estado. Puede agregar más de un estudio.</p>
+        <div id="turnoImagenesList" class="turno-steps-grid turno-steps-grid--img"></div>
+        <button type="button" class="btn btn-secondary btn-sm" id="btnTurnoAddImg"><i class="ti ti-plus"></i> Agregar estudio</button>
+      </section>
+      <section class="turno-section">
+        <h3 class="turno-section__title"><i class="ti ti-calendar-event"></i> Interconsulta final — acordar turno de cirugía</h3>
+        <div class="form-grid">
+          <div class="form-row"><label for="turnoCirEsp">Especialista</label><select id="turnoCirEsp"></select></div>
+          <div class="form-row"><label for="turnoCirFecha">Fecha acordada</label><input type="date" id="turnoCirFecha" /></div>
+          <div class="form-row"><label for="turnoCirEstado">Estado</label><select id="turnoCirEstado"><option value="pendiente">Pendiente</option><option value="completado">Completado</option><option value="no_quiere">No quiere</option></select></div>
+        </div>
+      </section>
+      <div class="form-row"><label for="turnoNotas">Notas</label><textarea id="turnoNotas" rows="2" placeholder="Observaciones generales"></textarea></div>
     </div>
-    <p class="form-section">Prioridad</p>
-    <div class="form-grid">
-      <div class="form-row"><label for="turnoUrg">Urgencia</label><select id="turnoUrg"><option value="alta">Urgente</option><option value="media">Moderada</option><option value="baja">Control</option></select></div>
-      <div class="form-row"><label for="turnoEst">Estado</label><select id="turnoEst"><option value="pendiente">Pendiente</option><option value="programado">Programado</option><option value="completado">Completado</option></select></div>
-    </div>
-    <div class="form-row"><label for="turnoNotas">Notas</label><textarea id="turnoNotas" rows="2"></textarea></div>
     <div class="modal-footer">
-      <button type="button" class="btn btn-danger edit-only admin-edit-btn" onclick="AdminModule.deleteTurno()" style="margin-right:auto"><i class="ti ti-trash"></i> Eliminar</button>
-      <button type="button" class="btn btn-secondary" onclick="AdminModule.closeTurnoModal()">Cancelar</button>
-      <button type="button" class="btn btn-primary" onclick="AdminModule.saveTurno()"><i class="ti ti-device-floppy"></i> Guardar</button>
+      <button type="button" class="btn btn-danger edit-only admin-edit-btn" id="turnoModalDelete" style="margin-right:auto"><i class="ti ti-trash"></i> Eliminar</button>
+      <button type="button" class="btn btn-secondary" id="turnoModalCancel">Cancelar</button>
+      <button type="button" class="btn btn-primary" id="turnoModalSave"><i class="ti ti-device-floppy"></i> Guardar</button>
     </div>
   </div>
 </div>
@@ -613,18 +630,20 @@
 <script src="js/config.js"></script>
 <script src="js/load-config.js"></script>
 <script src="js/supabase-client.js"></script>
-<script src="js/data-service.js"></script>
+<script src="js/data-service.js?v=turnos2"></script>
 <script src="js/platform-sync.js"></script>
 <script src="js/audit.js"></script>
-<script src="js/export-print.js"></script>
+<script src="js/export-print.js?v=turnos2"></script>
 <script src="js/motion.js"></script>
-<script src="js/app.js"></script>
-<script src="js/dashboard.js"></script>
+<script src="js/app.js?v=turnos2"></script>
+<script src="js/dashboard.js?v=turnos2"></script>
 <script src="js/licencias-dias.js"></script>
 <script src="js/licencias-default.js"></script>
 <script src="js/licencias.js"></script>
 <script src="js/laboratorios.js"></script>
-<script src="js/administracion.js"></script>
+<script src="js/turnos-model.js?v=turnos2"></script>
+<script src="js/turnos.js?v=turnos2"></script>
+<script src="js/administracion.js?v=turnos2"></script>
 <script src="js/personal.js"></script>
 </body>
 </html>

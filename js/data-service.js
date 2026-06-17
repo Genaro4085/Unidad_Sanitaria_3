@@ -309,6 +309,86 @@ const DataService = (() => {
     return data;
   }
 
+  function serializeTurnoForDb(t) {
+    if (typeof TurnosModel !== 'undefined') {
+      const n = TurnosModel.normalize(t);
+      const r = TurnosModel.resumen(n);
+      const payload = {
+        v: 2,
+        interconsultas: n.interconsultas,
+        prequirurgicos: n.prequirurgicos,
+        imagenes: n.imagenes,
+        turnoCirugia: n.turnoCirugia,
+        notas: n.notas || '',
+      };
+      return {
+        paciente: n.paciente || null,
+        patologia: n.patologia || null,
+        especialista: n.turnoCirugia?.especialista || null,
+        prequirurgico: n.prequirurgicos?.laboratorio?.fecha || null,
+        anestesista: n.prequirurgicos?.anestesista?.fecha || null,
+        cardiologia: n.prequirurgicos?.cardiologia?.fecha || null,
+        imagenes: n.imagenes?.[0]?.fecha || null,
+        urgencia: n.urgencia || 'media',
+        estado: r.estadoGeneral,
+        observaciones: JSON.stringify(payload),
+      };
+    }
+    return {
+      paciente: t.paciente || null,
+      patologia: t.patologia || null,
+      especialista: t.especialista || null,
+      prequirurgico: t.prequirurgico || null,
+      anestesista: t.anestesista || null,
+      cardiologia: t.cardiologia || null,
+      imagenes: typeof t.imagenes === 'string' ? t.imagenes : null,
+      urgencia: t.urgencia || 'media',
+      estado: t.estado || 'pendiente',
+      observaciones: t.notas || null,
+    };
+  }
+
+  function parseTurnoFromDb(t, i) {
+    let extra = null;
+    try {
+      if (t.observaciones && String(t.observaciones).trim().startsWith('{')) {
+        extra = JSON.parse(t.observaciones);
+      }
+    } catch (_) { /* legacy text in observaciones */ }
+
+    if (extra?.v === 2 && typeof TurnosModel !== 'undefined') {
+      return TurnosModel.normalize({
+        id: t.id || i + 1,
+        supabaseId: t.id,
+        paciente: t.paciente || '',
+        patologia: t.patologia || '',
+        urgencia: t.urgencia || 'media',
+        notas: extra.notas || '',
+        interconsultas: extra.interconsultas,
+        prequirurgicos: extra.prequirurgicos,
+        imagenes: extra.imagenes,
+        turnoCirugia: extra.turnoCirugia,
+        v: 2,
+      });
+    }
+
+    const legacy = {
+      id: t.id || i + 1,
+      supabaseId: t.id,
+      paciente: t.paciente || '',
+      patologia: t.patologia || '',
+      especialista: t.especialista || '',
+      prequirurgico: t.prequirurgico || '',
+      anestesista: t.anestesista || '',
+      cardiologia: t.cardiologia || '',
+      imagenes: t.imagenes || '',
+      urgencia: t.urgencia || 'media',
+      estado: t.estado || 'pendiente',
+      notas: extra?.notas || t.observaciones || '',
+    };
+    return typeof TurnosModel !== 'undefined' ? TurnosModel.normalize(legacy) : legacy;
+  }
+
   async function mirrorOperationalTables(platform) {
     const sb = getClient();
     if (!sb || !(await isOnline()) || !platform) return;
@@ -317,18 +397,7 @@ const DataService = (() => {
     const delTurnos = await sb.from('turnos').delete().gte('id', 0);
     if (delTurnos.error) console.warn('[US3 Supabase] turnos delete:', delTurnos.error.message);
     if (turnos.length) {
-      const ins = await sb.from('turnos').insert(turnos.map(t => ({
-        paciente: t.paciente || null,
-        patologia: t.patologia || null,
-        especialista: t.especialista || null,
-        prequirurgico: t.prequirurgico || null,
-        anestesista: t.anestesista || null,
-        cardiologia: t.cardiologia || null,
-        imagenes: t.imagenes || null,
-        urgencia: t.urgencia || 'media',
-        estado: t.estado || 'pendiente',
-        observaciones: t.notas || null,
-      })));
+      const ins = await sb.from('turnos').insert(turnos.map(serializeTurnoForDb));
       if (ins.error) console.warn('[US3 Supabase] turnos insert:', ins.error.message);
     }
 
@@ -418,20 +487,7 @@ const DataService = (() => {
 
     if (!(turnosRows?.length || labRows?.length)) return null;
 
-    const turnosUrgentes = (turnosRows || []).map((t, i) => ({
-      id: t.id || i + 1,
-      supabaseId: t.id,
-      paciente: t.paciente || '',
-      patologia: t.patologia || '',
-      especialista: t.especialista || '',
-      prequirurgico: t.prequirurgico || '',
-      anestesista: t.anestesista || '',
-      cardiologia: t.cardiologia || '',
-      imagenes: t.imagenes || '',
-      urgencia: t.urgencia || 'media',
-      estado: t.estado || 'pendiente',
-      notas: t.observaciones || '',
-    }));
+    const turnosUrgentes = (turnosRows || []).map((t, i) => parseTurnoFromDb(t, i));
 
     const laboratorios = (labRows || []).map((l, i) => ({
       id: l.id || i + 1,

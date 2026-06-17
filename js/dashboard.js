@@ -55,7 +55,13 @@ const DashboardModule = (() => {
     const critical = appData.patologiasGrupos?.controlAltaComplejidad?.internos?.length
       ?? appData.patologias.controlAltaComplejidad ?? 0;
 
-    const urgentes = appData.turnosUrgentes.filter(t => t.urgencia === 'alta' && t.estado !== 'completado').length;
+    const urgentes = appData.turnosUrgentes.filter(t => {
+      if (t.urgencia !== 'alta') return false;
+      if (typeof TurnosModel !== 'undefined') {
+        return TurnosModel.resumen(TurnosModel.normalize(t)).estadoGeneral !== 'completado';
+      }
+      return t.estado !== 'completado';
+    }).length;
 
 
 

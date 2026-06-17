@@ -102,11 +102,19 @@ const ExportPrint = (() => {
   }
 
   function turnosRows() {
-    const headers = ['Interno', 'Patología', 'Especialista', 'Prequirúrgico', 'Anestesista', 'Cardiología', 'Imágenes', 'Urgencia', 'Estado', 'Notas'];
-    const rows = appData.turnosUrgentes.map(t => [
-      t.paciente, t.patologia, t.especialista, t.prequirurgico || '', t.anestesista || '',
-      t.cardiologia || '', t.imagenes || '', t.urgencia, t.estado, t.notas || '',
-    ]);
+    const headers = [
+      'Interno', 'Patología', 'Urgencia', 'Estado general', 'Etapa', 'Progreso',
+      'Cirugía especialista', 'Cirugía fecha', 'Cirugía estado', 'Notas',
+    ];
+    const rows = appData.turnosUrgentes.map(t => {
+      const n = typeof TurnosModel !== 'undefined' ? TurnosModel.normalize(t) : t;
+      const r = typeof TurnosModel !== 'undefined' ? TurnosModel.resumen(n) : { estadoGeneral: t.estado, etapa: '', completados: 0, total: 0 };
+      const cir = n.turnoCirugia || {};
+      return [
+        n.paciente, n.patologia, n.urgencia, r.estadoGeneral, r.etapa,
+        `${r.completados}/${r.total}`, cir.especialista || '', cir.fecha || '', cir.estado || '', n.notas || '',
+      ];
+    });
     return { headers, rows };
   }
 
