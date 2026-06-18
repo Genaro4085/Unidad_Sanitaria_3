@@ -164,11 +164,13 @@ const DashboardModule = (() => {
     const quarters = ['2026-Q1', '2026-Q2', '2026-Q3', '2026-Q4'];
 
     const vals = quarters.map(q => {
-
       const t = appData.trimestral[q] || {};
-
-      return (t.oficios || 0) + (t.odontologia || 0) + (t.consultas || 0) + (t.saludMental || 0);
-
+      if (typeof TrimestralModel !== 'undefined') {
+        const tot = TrimestralModel.quarterTotals(t);
+        return (tot.oficios || 0) + (tot.odontologia || 0) + (tot.consultas || 0)
+          + (tot.psiquiatria || 0) + (tot.psicologia || 0);
+      }
+      return (t.oficios || 0) + (t.odontologia || 0) + (t.consultas || 0);
     });
 
     const max = Math.max(...vals, 1);

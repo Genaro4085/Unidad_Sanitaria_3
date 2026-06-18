@@ -137,10 +137,10 @@ INSERT INTO registro_trimestral (tipo_id, cantidad, periodo, fecha)
 SELECT id, 1, '2026-Q1', CURRENT_DATE FROM tipos_trimestral WHERE codigo = 'derivaciones'
 ON CONFLICT (tipo_id, periodo) DO UPDATE SET cantidad = 1;
 INSERT INTO registro_trimestral (tipo_id, cantidad, periodo, fecha)
-SELECT id, 1, '2026-Q1', CURRENT_DATE FROM tipos_trimestral WHERE codigo = 'interconsultas'
+SELECT id, 1, '2026-Q1', CURRENT_DATE FROM tipos_trimestral WHERE codigo = 'laboratorios'
 ON CONFLICT (tipo_id, periodo) DO UPDATE SET cantidad = 1;
 INSERT INTO registro_trimestral (tipo_id, cantidad, periodo, fecha)
-SELECT id, 1, '2026-Q1', CURRENT_DATE FROM tipos_trimestral WHERE codigo = 'saludMental'
+SELECT id, 1, '2026-Q1', CURRENT_DATE FROM tipos_trimestral WHERE codigo = 'vacunados'
 ON CONFLICT (tipo_id, periodo) DO UPDATE SET cantidad = 1;
 
 -- Turno y laboratorio demo (1 registro cada uno)

@@ -13,7 +13,7 @@ const PATOLOGIA_CODIGOS = [
 const PATOLOGIA_DETALLE = ['controlAltaComplejidad', 'internados', 'huelgaHambre'];
 const TRIMESTRAL_CODIGOS = [
   'oficios', 'odontologia', 'psiquiatria', 'psicologia',
-  'consultas', 'derivaciones', 'interconsultas', 'saludMental',
+  'consultas', 'derivaciones', 'laboratorios', 'vacunados',
 ];
 
 function esc(s) {

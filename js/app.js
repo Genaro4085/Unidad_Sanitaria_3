@@ -43,16 +43,9 @@ const DEFAULT_DATA = {
       internos: ['Interno demo']
     }
   },
-  trimestral: {
-    '2026-Q1': {
-      oficios: 1, odontologia: 1, saludMental: 1,
-      consultas: 1, derivaciones: 1, interconsultas: 1,
-      psiquiatria: 1, psicologia: 1
-    },
-    '2026-Q2': { oficios: 0, odontologia: 0, saludMental: 0, consultas: 0, derivaciones: 0, interconsultas: 0, psiquiatria: 0, psicologia: 0 },
-    '2026-Q3': { oficios: 0, odontologia: 0, saludMental: 0, consultas: 0, derivaciones: 0, interconsultas: 0, psiquiatria: 0, psicologia: 0 },
-    '2026-Q4': { oficios: 0, odontologia: 0, saludMental: 0, consultas: 0, derivaciones: 0, interconsultas: 0, psiquiatria: 0, psicologia: 0 }
-  },
+  trimestral: typeof TrimestralModel !== 'undefined'
+    ? TrimestralModel.createDefaultTrimestral()
+    : {},
   turnosUrgentes: [
     { id: 1, paciente: 'Interno demo', patologia: 'Demo', especialista: 'Demo', prequirurgico: '', anestesista: '', cardiologia: '', imagenes: '', urgencia: 'media', estado: 'pendiente', notas: 'Dato ficticio' }
   ],
@@ -74,6 +67,7 @@ if (isAuthenticated && !sessionStorage.getItem(AUTH_USER_KEY)) {
 }
 let currentView = 'dashboard';
 let currentQuarter = '2026-Q1';
+let currentTrimTab = 'oficios';
 
 const VIEW_TITLES = {
   dashboard: 'Dashboard',
@@ -93,12 +87,9 @@ function loadData() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
-      const trim = { ...DEFAULT_DATA.trimestral };
-      if (parsed.trimestral) {
-        Object.keys(parsed.trimestral).forEach(k => {
-          trim[k] = { ...DEFAULT_DATA.trimestral[k], ...parsed.trimestral[k] };
-        });
-      }
+      const trim = typeof TrimestralModel !== 'undefined'
+        ? TrimestralModel.normalizeAll(parsed.trimestral)
+        : (parsed.trimestral || DEFAULT_DATA.trimestral);
       return {
         ...DEFAULT_DATA,
         ...parsed,

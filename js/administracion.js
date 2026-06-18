@@ -46,39 +46,9 @@ const AdminModule = (() => {
 
 
 
-  const QUARTERS = [
+  const QUARTERS = TrimestralModel.QUARTERS;
 
-    { key: '2026-Q1', label: '1.er Trimestre 2026' },
-
-    { key: '2026-Q2', label: '2.° Trimestre 2026' },
-
-    { key: '2026-Q3', label: '3.er Trimestre 2026' },
-
-    { key: '2026-Q4', label: '4.° Trimestre 2026' },
-
-  ];
-
-
-
-  const TRIMESTRAL_FIELDS = [
-
-    { key: 'oficios', label: 'Oficios contestados', icon: 'ti-file-check' },
-
-    { key: 'odontologia', label: 'Atenciones odontológicas', icon: 'ti-dental' },
-
-    { key: 'psiquiatria', label: 'Atenciones psiquiátricas', icon: 'ti-brain' },
-
-    { key: 'psicologia', label: 'Atenciones psicológicas', icon: 'ti-mood-smile' },
-
-    { key: 'consultas', label: 'Consultas médicas', icon: 'ti-stethoscope' },
-
-    { key: 'derivaciones', label: 'Derivaciones hospitalarias', icon: 'ti-building-hospital' },
-
-    { key: 'interconsultas', label: 'Interconsultas', icon: 'ti-arrows-exchange' },
-
-    { key: 'saludMental', label: 'Salud mental (total)', icon: 'ti-heart-handshake' },
-
-  ];
+  const TRIMESTRAL_FIELDS = TrimestralModel.TRIMESTRAL_FIELDS;
 
 
 
@@ -455,144 +425,136 @@ const AdminModule = (() => {
 
 
 
-  function renderTrimestral() {
-
-    const selector = document.getElementById('quarterSelector');
-
-    selector.innerHTML = QUARTERS.map(q => `
-
-      <button class="quarter-btn${currentQuarter === q.key ? ' active' : ''}"
-
-        onclick="AdminModule.selectQuarter('${q.key}')">${q.label}</button>
-
-    `).join('');
-
-
-
-    const data = appData.trimestral[currentQuarter] || {};
-
-    const editable = canEdit();
-
-    const grid = document.getElementById('trimestralGrid');
-
-    grid.innerHTML = TRIMESTRAL_FIELDS.map(f => `
-
-      <div class="trimestral-item">
-
-        <label><i class="ti ${f.icon}"></i> ${f.label}</label>
-
-        <input type="number" min="0" value="${data[f.key] ?? 0}"
-
-          ${editable ? '' : 'disabled'}
-
-          onchange="AdminModule.updateTrimestral('${f.key}', this.value)" />
-
-      </div>
-
-    `).join('');
-
-    renderTrimestralCompare();
-
+  function ensureTrimestralQuarter() {
+    appData.trimestral = TrimestralModel.normalizeAll(appData.trimestral);
+    return appData.trimestral[currentQuarter];
   }
 
+  function renderTrimestral() {
+    ensureTrimestralQuarter();
 
+    const selector = document.getElementById('quarterSelector');
+    selector.innerHTML = QUARTERS.map(q => `
+      <button class="quarter-btn${currentQuarter === q.key ? ' active' : ''}"
+        onclick="AdminModule.selectQuarter('${q.key}')">${q.label}</button>
+    `).join('');
+
+    const tabsEl = document.getElementById('trimestralTabs');
+    if (tabsEl) {
+      tabsEl.innerHTML = TRIMESTRAL_FIELDS.map(f => `
+        <button type="button" class="trimestral-tab${currentTrimTab === f.key ? ' active' : ''}"
+          onclick="AdminModule.selectTrimTab('${f.key}')">
+          <i class="ti ${f.icon}"></i> ${escapeHtml(f.label)}
+        </button>
+      `).join('');
+    }
+
+    const fieldDef = TRIMESTRAL_FIELDS.find(f => f.key === currentTrimTab) || TRIMESTRAL_FIELDS[0];
+    const data = appData.trimestral[currentQuarter][fieldDef.key];
+    const months = TrimestralModel.monthLabels(currentQuarter);
+    const editable = canEdit();
+    const total = TrimestralModel.fieldTotal(data);
+    const grid = document.getElementById('trimestralGrid');
+
+    const monthCells = [0, 1, 2].map(i => {
+      const val = data[`m${i}`] ?? 0;
+      const input = editable
+        ? `<input type="number" min="0" class="trim-month-input" value="${val}"
+            aria-label="${escapeHtml(months[i])}"
+            onchange="AdminModule.updateTrimestralMonth('${fieldDef.key}', ${i}, this.value)" />`
+        : `<span class="trim-month-value">${val}</span>`;
+      return `
+        <div class="trim-month-col">
+          <span class="trim-month-label">${escapeHtml(months[i])}</span>
+          ${input}
+        </div>`;
+    }).join('');
+
+    grid.innerHTML = `
+      <div class="trimestral-panel">
+        <div class="trimestral-panel__head">
+          <h3><i class="ti ${fieldDef.icon}"></i> ${escapeHtml(fieldDef.label)}</h3>
+          <p class="trimestral-panel__hint">${escapeHtml(QUARTERS.find(q => q.key === currentQuarter)?.label || '')}</p>
+        </div>
+        <div class="trim-months-grid">${monthCells}</div>
+        <div class="trimestral-total">
+          <span>Total trimestre</span>
+          <strong id="trim-total-${fieldDef.key}">${total}</strong>
+        </div>
+      </div>`;
+
+    renderTrimestralCompare();
+  }
 
   function renderTrimestralCompare() {
-
     const chartEl = document.getElementById('trimestralChart');
-
     if (!chartEl) return;
 
     const keys = ['oficios', 'odontologia', 'consultas', 'derivaciones'];
-
     const labels = ['Oficios', 'Odontología', 'Consultas', 'Derivaciones'];
-
-    const quarters = ['2026-Q1', '2026-Q2', '2026-Q3', '2026-Q4'];
-
-    const series = quarters.map(q => keys.map(k => appData.trimestral[q]?.[k] ?? 0));
-
+    const quarters = QUARTERS.map(q => q.key);
+    const series = quarters.map(q => {
+      const totals = TrimestralModel.quarterTotals(appData.trimestral[q] || {});
+      return keys.map(k => totals[k] ?? 0);
+    });
     const max = Math.max(...series.flat(), 1);
 
     const bars = quarters.map((q, qi) => {
-
       const inner = keys.map((k, ki) => {
-
         const v = series[qi][ki];
-
         const h = Math.round((v / max) * 100);
-
         return `<div class="bar-fill bar-fill--q${qi}" style="height:${h}%" title="${labels[ki]}: ${v}"></div>`;
-
       }).join('');
-
       return `<div class="trim-quarter-group"><div class="bar-chart bar-chart--compact">${inner}</div><span>${q.replace('2026-', 'T')}</span></div>`;
-
     }).join('');
 
     chartEl.innerHTML = `
-
       <div class="chart-card" style="grid-column:1/-1">
-
         <h3>Comparativa trimestral</h3>
-
         <div class="trim-compare-row">${bars}</div>
-
         <div class="chart-legend">${labels.map(l => `<span>${l}</span>`).join('')}</div>
-
       </div>`;
-
   }
-
-
 
   function selectQuarter(key) {
-
     currentQuarter = key;
-
     renderTrimestral();
-
   }
 
+  function selectTrimTab(key) {
+    currentTrimTab = key;
+    renderTrimestral();
+  }
 
-
-  function updateTrimestral(field, value) {
-
+  function updateTrimestralMonth(field, monthIdx, value) {
     if (!canEdit()) return;
-
-    if (!appData.trimestral[currentQuarter]) appData.trimestral[currentQuarter] = {};
-
-    const oldVal = appData.trimestral[currentQuarter][field] ?? 0;
-
-    const newVal = parseInt(value) || 0;
-
+    ensureTrimestralQuarter();
+    const mk = `m${monthIdx}`;
+    const oldVal = appData.trimestral[currentQuarter][field][mk] ?? 0;
+    const newVal = Math.max(0, parseInt(value, 10) || 0);
     if (oldVal === newVal) return;
 
-    appData.trimestral[currentQuarter][field] = newVal;
-
+    appData.trimestral[currentQuarter][field][mk] = newVal;
     saveData();
 
-    const fieldDef = TRIMESTRAL_FIELDS.find(f => f.key === field);
-
-    const label = fieldDef ? fieldDef.label : field;
-
-    if (typeof logAudit === 'function') {
-
-      logAudit({
-
-        modulo: 'Trimestrales',
-
-        tabla: 'trimestral',
-
-        accion: 'UPDATE',
-
-        registroId: `${currentQuarter}/${field}`,
-
-        detalle: `Se modificó ${label} (${currentQuarter}) de ${oldVal} a ${newVal}`,
-
-      });
-
+    const totalEl = document.getElementById('trim-total-' + field);
+    if (totalEl) {
+      totalEl.textContent = TrimestralModel.fieldTotal(appData.trimestral[currentQuarter][field]);
     }
+    renderTrimestralCompare();
 
+    const fieldDef = TRIMESTRAL_FIELDS.find(f => f.key === field);
+    const months = TrimestralModel.monthLabels(currentQuarter);
+    const label = fieldDef ? fieldDef.label : field;
+    if (typeof logAudit === 'function') {
+      logAudit({
+        modulo: 'Trimestrales',
+        tabla: 'trimestral',
+        accion: 'UPDATE',
+        registroId: `${currentQuarter}/${field}/${mk}`,
+        detalle: `Se modificó ${label} — ${months[monthIdx]} (${currentQuarter}) de ${oldVal} a ${newVal}`,
+      });
+    }
   }
 
 
@@ -623,7 +585,7 @@ const AdminModule = (() => {
 
     renderPatologias, updatePatologia, updatePoblacion, addInternoGrupo, removeInternoGrupo, renderTrimestral, selectQuarter,
 
-    updateTrimestral,
+    selectTrimTab, updateTrimestralMonth,
 
     renderTurnos: () => typeof TurnosModule !== 'undefined' && TurnosModule.render(),
 

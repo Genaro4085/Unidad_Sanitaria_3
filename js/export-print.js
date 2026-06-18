@@ -31,16 +31,18 @@ const ExportPrint = (() => {
 
   const GRUPO_KEYS = ['controlAltaComplejidad', 'internados', 'huelgaHambre'];
 
-  const TRIM_FIELDS = [
-    ['oficios', 'Oficios contestados'],
-    ['odontologia', 'Atenciones odontológicas'],
-    ['psiquiatria', 'Atenciones psiquiátricas'],
-    ['psicologia', 'Atenciones psicológicas'],
-    ['consultas', 'Consultas médicas'],
-    ['derivaciones', 'Derivaciones hospitalarias'],
-    ['interconsultas', 'Interconsultas'],
-    ['saludMental', 'Salud mental (total)'],
-  ];
+  const TRIM_FIELDS = typeof TrimestralModel !== 'undefined'
+    ? TrimestralModel.TRIMESTRAL_FIELDS.map(f => [f.key, f.label])
+    : [
+      ['oficios', 'Oficios contestados'],
+      ['odontologia', 'Atenciones odontológicas'],
+      ['psiquiatria', 'Psiquiatría'],
+      ['psicologia', 'Psicología'],
+      ['consultas', 'Consultas médicas'],
+      ['derivaciones', 'Derivaciones hospitalarias'],
+      ['laboratorios', 'Laboratorios'],
+      ['vacunados', 'Vacunados'],
+    ];
 
   const QUARTER_LABELS = {
     '2026-Q1': '1.er Trimestre 2026',
@@ -91,11 +93,19 @@ const ExportPrint = (() => {
   }
 
   function trimestralRows() {
-    const rows = [['Trimestre', 'Indicador', 'Valor']];
+    const rows = [['Trimestre', 'Indicador', 'Mes 1', 'Mes 2', 'Mes 3', 'Total']];
     Object.keys(QUARTER_LABELS).forEach(q => {
-      const data = appData.trimestral[q] || {};
+      const data = typeof TrimestralModel !== 'undefined'
+        ? TrimestralModel.normalizeQuarter(appData.trimestral[q])
+        : (appData.trimestral[q] || {});
       TRIM_FIELDS.forEach(([key, label]) => {
-        rows.push([QUARTER_LABELS[q], label, data[key] ?? 0]);
+        const m = typeof TrimestralModel !== 'undefined'
+          ? data[key] || TrimestralModel.emptyMonths()
+          : { m0: data[key] ?? 0, m1: 0, m2: 0 };
+        const total = typeof TrimestralModel !== 'undefined'
+          ? TrimestralModel.fieldTotal(m)
+          : (m.m0 + m.m1 + m.m2);
+        rows.push([QUARTER_LABELS[q], label, m.m0, m.m1, m.m2, total]);
       });
     });
     return rows;

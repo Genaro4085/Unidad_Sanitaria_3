@@ -457,13 +457,19 @@ const DataService = (() => {
 
     for (const [periodo, vals] of Object.entries(platform.trimestral || {})) {
       if (!vals || typeof vals !== 'object') continue;
-      for (const [codigo, cantidad] of Object.entries(vals)) {
+      const normalized = typeof TrimestralModel !== 'undefined'
+        ? TrimestralModel.normalizeQuarter(vals)
+        : vals;
+      for (const [codigo, rawVal] of Object.entries(normalized)) {
         const tipoId = trimMap[codigo];
         if (!tipoId) continue;
+        const cantidad = typeof TrimestralModel !== 'undefined'
+          ? TrimestralModel.fieldTotal(rawVal)
+          : (Number(rawVal) || 0);
         const { error } = await sb.from('registro_trimestral').upsert({
           tipo_id: tipoId,
           periodo,
-          cantidad: Number(cantidad) || 0,
+          cantidad,
           fecha: today,
         }, { onConflict: 'tipo_id,periodo' });
         if (error) console.warn('[US3 Supabase] registro_trimestral:', error.message);

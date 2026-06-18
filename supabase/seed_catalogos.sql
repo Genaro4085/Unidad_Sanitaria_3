@@ -35,8 +35,8 @@ INSERT INTO tipos_trimestral (codigo, nombre) VALUES
   ('psicologia', 'Atenciones psicológicas'),
   ('consultas', 'Consultas médicas'),
   ('derivaciones', 'Derivaciones hospitalarias'),
-  ('interconsultas', 'Interconsultas'),
-  ('saludMental', 'Salud mental (total)')
+  ('laboratorios', 'Laboratorios'),
+  ('vacunados', 'Vacunados')
 ON CONFLICT (codigo) DO UPDATE SET nombre = EXCLUDED.nombre;
 
 COMMIT;

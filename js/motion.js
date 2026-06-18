@@ -23,7 +23,7 @@ const MotionModule = (() => {
     stagger(viewEl, '.stats-grid > *');
     stagger(viewEl, '.pathology-grid > .pathology-card');
     stagger(viewEl, '.pathology-priority > .pathology-fold');
-    stagger(viewEl, '.trimestral-grid > *');
+    stagger(viewEl, '.trimestral-panel, .trimestral-tab');
     stagger(viewEl, '.role-grid > *');
     stagger(viewEl, '.quick-grid > *');
   }
