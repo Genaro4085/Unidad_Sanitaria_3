@@ -430,6 +430,43 @@ const AdminModule = (() => {
     return appData.trimestral[currentQuarter];
   }
 
+  function trimestralItemHtml(f, quarterData, months, editable) {
+    if (TrimestralModel.isScalarField(f.key)) {
+      const val = TrimestralModel.normalizeScalar(quarterData[f.key]);
+      const input = editable
+        ? `<input type="number" min="0" value="${val}"
+            onchange="AdminModule.updateTrimestralScalar('${f.key}', this.value)" />`
+        : `<div class="trimestral-count">${val}</div>`;
+      return `
+      <div class="trimestral-item">
+        <label><i class="ti ${f.icon}"></i> ${escapeHtml(f.label)}</label>
+        ${input}
+      </div>`;
+    }
+
+    const data = quarterData[f.key] || TrimestralModel.emptyMonths();
+    const total = TrimestralModel.fieldTotal(data, f.key);
+    const monthInputs = [0, 1, 2].map(i => {
+      const val = data[`m${i}`] ?? 0;
+      const short = escapeHtml(months[i].slice(0, 3));
+      const cell = editable
+        ? `<input type="number" min="0" class="trim-item-min" value="${val}" aria-label="${escapeHtml(months[i])}"
+            onchange="AdminModule.updateTrimestralMonth('${f.key}', ${i}, this.value)" />`
+        : `<span class="trim-item-val">${val}</span>`;
+      return `<div class="trim-item-cell"><span class="trim-item-mname">${short}</span>${cell}</div>`;
+    }).join('');
+
+    return `
+    <div class="trimestral-item trimestral-item--months">
+      <label><i class="ti ${f.icon}"></i> ${escapeHtml(f.label)}</label>
+      <div class="trim-item-months">${monthInputs}</div>
+      <div class="trim-item-foot">
+        <span>Total</span>
+        <strong id="trim-total-${f.key}">${total}</strong>
+      </div>
+    </div>`;
+  }
+
   function renderTrimestral() {
     ensureTrimestralQuarter();
 
@@ -439,49 +476,14 @@ const AdminModule = (() => {
         onclick="AdminModule.selectQuarter('${q.key}')">${q.label}</button>
     `).join('');
 
-    const tabsEl = document.getElementById('trimestralTabs');
-    if (tabsEl) {
-      tabsEl.innerHTML = TRIMESTRAL_FIELDS.map(f => `
-        <button type="button" class="trimestral-tab${currentTrimTab === f.key ? ' active' : ''}"
-          onclick="AdminModule.selectTrimTab('${f.key}')">
-          <i class="ti ${f.icon}"></i> ${escapeHtml(f.label)}
-        </button>
-      `).join('');
-    }
-
-    const fieldDef = TRIMESTRAL_FIELDS.find(f => f.key === currentTrimTab) || TRIMESTRAL_FIELDS[0];
-    const data = appData.trimestral[currentQuarter][fieldDef.key];
+    const quarterData = appData.trimestral[currentQuarter];
     const months = TrimestralModel.monthLabels(currentQuarter);
     const editable = canEdit();
-    const total = TrimestralModel.fieldTotal(data);
     const grid = document.getElementById('trimestralGrid');
 
-    const monthCells = [0, 1, 2].map(i => {
-      const val = data[`m${i}`] ?? 0;
-      const input = editable
-        ? `<input type="number" min="0" class="trim-month-input" value="${val}"
-            aria-label="${escapeHtml(months[i])}"
-            onchange="AdminModule.updateTrimestralMonth('${fieldDef.key}', ${i}, this.value)" />`
-        : `<span class="trim-month-value">${val}</span>`;
-      return `
-        <div class="trim-month-col">
-          <span class="trim-month-label">${escapeHtml(months[i])}</span>
-          ${input}
-        </div>`;
-    }).join('');
-
-    grid.innerHTML = `
-      <div class="trimestral-panel">
-        <div class="trimestral-panel__head">
-          <h3><i class="ti ${fieldDef.icon}"></i> ${escapeHtml(fieldDef.label)}</h3>
-          <p class="trimestral-panel__hint">${escapeHtml(QUARTERS.find(q => q.key === currentQuarter)?.label || '')}</p>
-        </div>
-        <div class="trim-months-grid">${monthCells}</div>
-        <div class="trimestral-total">
-          <span>Total trimestre</span>
-          <strong id="trim-total-${fieldDef.key}">${total}</strong>
-        </div>
-      </div>`;
+    grid.innerHTML = TRIMESTRAL_FIELDS
+      .map(f => trimestralItemHtml(f, quarterData, months, editable))
+      .join('');
 
     renderTrimestralCompare();
   }
@@ -521,11 +523,6 @@ const AdminModule = (() => {
     renderTrimestral();
   }
 
-  function selectTrimTab(key) {
-    currentTrimTab = key;
-    renderTrimestral();
-  }
-
   function updateTrimestralMonth(field, monthIdx, value) {
     if (!canEdit()) return;
     ensureTrimestralQuarter();
@@ -539,7 +536,7 @@ const AdminModule = (() => {
 
     const totalEl = document.getElementById('trim-total-' + field);
     if (totalEl) {
-      totalEl.textContent = TrimestralModel.fieldTotal(appData.trimestral[currentQuarter][field]);
+      totalEl.textContent = TrimestralModel.fieldTotal(appData.trimestral[currentQuarter][field], field);
     }
     renderTrimestralCompare();
 
@@ -553,6 +550,30 @@ const AdminModule = (() => {
         accion: 'UPDATE',
         registroId: `${currentQuarter}/${field}/${mk}`,
         detalle: `Se modificó ${label} — ${months[monthIdx]} (${currentQuarter}) de ${oldVal} a ${newVal}`,
+      });
+    }
+  }
+
+  function updateTrimestralScalar(field, value) {
+    if (!canEdit()) return;
+    ensureTrimestralQuarter();
+    const oldVal = TrimestralModel.normalizeScalar(appData.trimestral[currentQuarter][field]);
+    const newVal = Math.max(0, parseInt(value, 10) || 0);
+    if (oldVal === newVal) return;
+
+    appData.trimestral[currentQuarter][field] = newVal;
+    saveData();
+    renderTrimestralCompare();
+
+    const fieldDef = TRIMESTRAL_FIELDS.find(f => f.key === field);
+    const label = fieldDef ? fieldDef.label : field;
+    if (typeof logAudit === 'function') {
+      logAudit({
+        modulo: 'Trimestrales',
+        tabla: 'trimestral',
+        accion: 'UPDATE',
+        registroId: `${currentQuarter}/${field}`,
+        detalle: `Se modificó ${label} (${currentQuarter}) de ${oldVal} a ${newVal}`,
       });
     }
   }
@@ -585,7 +606,7 @@ const AdminModule = (() => {
 
     renderPatologias, updatePatologia, updatePoblacion, addInternoGrupo, removeInternoGrupo, renderTrimestral, selectQuarter,
 
-    selectTrimTab, updateTrimestralMonth,
+    updateTrimestralMonth, updateTrimestralScalar,
 
     renderTurnos: () => typeof TurnosModule !== 'undefined' && TurnosModule.render(),
 

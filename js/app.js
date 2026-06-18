@@ -67,7 +67,6 @@ if (isAuthenticated && !sessionStorage.getItem(AUTH_USER_KEY)) {
 }
 let currentView = 'dashboard';
 let currentQuarter = '2026-Q1';
-let currentTrimTab = 'oficios';
 
 const VIEW_TITLES = {
   dashboard: 'Dashboard',

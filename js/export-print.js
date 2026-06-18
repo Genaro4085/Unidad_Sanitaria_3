@@ -99,12 +99,16 @@ const ExportPrint = (() => {
         ? TrimestralModel.normalizeQuarter(appData.trimestral[q])
         : (appData.trimestral[q] || {});
       TRIM_FIELDS.forEach(([key, label]) => {
-        const m = typeof TrimestralModel !== 'undefined'
-          ? data[key] || TrimestralModel.emptyMonths()
-          : { m0: data[key] ?? 0, m1: 0, m2: 0 };
         const total = typeof TrimestralModel !== 'undefined'
-          ? TrimestralModel.fieldTotal(m)
-          : (m.m0 + m.m1 + m.m2);
+          ? TrimestralModel.fieldTotal(data[key], key)
+          : (Number(data[key]) || 0);
+        if (typeof TrimestralModel !== 'undefined' && TrimestralModel.isScalarField(key)) {
+          rows.push([QUARTER_LABELS[q], label, '', '', '', total]);
+          return;
+        }
+        const m = typeof TrimestralModel !== 'undefined'
+          ? (data[key] || TrimestralModel.emptyMonths())
+          : { m0: data[key] ?? 0, m1: 0, m2: 0 };
         rows.push([QUARTER_LABELS[q], label, m.m0, m.m1, m.m2, total]);
       });
     });

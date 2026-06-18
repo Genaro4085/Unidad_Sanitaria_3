@@ -464,7 +464,7 @@ const DataService = (() => {
         const tipoId = trimMap[codigo];
         if (!tipoId) continue;
         const cantidad = typeof TrimestralModel !== 'undefined'
-          ? TrimestralModel.fieldTotal(rawVal)
+          ? TrimestralModel.fieldTotal(rawVal, codigo)
           : (Number(rawVal) || 0);
         const { error } = await sb.from('registro_trimestral').upsert({
           tipo_id: tipoId,

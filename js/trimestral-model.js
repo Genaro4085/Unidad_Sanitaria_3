@@ -29,6 +29,12 @@ const TrimestralModel = (() => {
   const LEGACY_RENAMES = { interconsultas: 'laboratorios' };
   const LEGACY_DROP = ['saludMental'];
 
+  const SCALAR_FIELDS = ['vacunados'];
+
+  function isScalarField(key) {
+    return SCALAR_FIELDS.includes(key);
+  }
+
   function emptyMonths() {
     return { m0: 0, m1: 0, m2: 0 };
   }
@@ -36,7 +42,8 @@ const TrimestralModel = (() => {
   function createQuarterData({ firstMonthValue = 0 } = {}) {
     const q = {};
     TRIMESTRAL_FIELDS.forEach(({ key }) => {
-      q[key] = { m0: firstMonthValue, m1: 0, m2: 0 };
+      if (isScalarField(key)) q[key] = firstMonthValue;
+      else q[key] = { m0: firstMonthValue, m1: 0, m2: 0 };
     });
     return q;
   }
@@ -48,6 +55,13 @@ const TrimestralModel = (() => {
       '2026-Q3': createQuarterData(),
       '2026-Q4': createQuarterData(),
     };
+  }
+
+  function normalizeScalar(val) {
+    if (val != null && typeof val === 'object') {
+      return Math.max(0, parseInt(val.m0 ?? val.total ?? 0, 10) || 0);
+    }
+    return Math.max(0, parseInt(val, 10) || 0);
   }
 
   function normalizeMonthValue(val) {
@@ -76,7 +90,9 @@ const TrimestralModel = (() => {
     const r = applyLegacyAliases(raw);
     const q = {};
     TRIMESTRAL_FIELDS.forEach(({ key }) => {
-      q[key] = normalizeMonthValue(r[key]);
+      q[key] = isScalarField(key)
+        ? normalizeScalar(r[key])
+        : normalizeMonthValue(r[key]);
     });
     return q;
   }
@@ -94,7 +110,8 @@ const TrimestralModel = (() => {
     return QUARTER_MONTHS[quarterKey] || ['Mes 1', 'Mes 2', 'Mes 3'];
   }
 
-  function fieldTotal(fieldData) {
+  function fieldTotal(fieldData, key) {
+    if (isScalarField(key)) return normalizeScalar(fieldData);
     const m = normalizeMonthValue(fieldData);
     return m.m0 + m.m1 + m.m2;
   }
@@ -102,7 +119,7 @@ const TrimestralModel = (() => {
   function quarterTotals(quarterData) {
     const totals = {};
     TRIMESTRAL_FIELDS.forEach(({ key }) => {
-      totals[key] = fieldTotal(quarterData?.[key]);
+      totals[key] = fieldTotal(quarterData?.[key], key);
     });
     return totals;
   }
@@ -112,6 +129,8 @@ const TrimestralModel = (() => {
     QUARTER_MONTHS,
     TRIMESTRAL_FIELDS,
     FIELD_KEYS,
+    SCALAR_FIELDS,
+    isScalarField,
     createDefaultTrimestral,
     normalizeQuarter,
     normalizeAll,
@@ -119,5 +138,6 @@ const TrimestralModel = (() => {
     fieldTotal,
     quarterTotals,
     emptyMonths,
+    normalizeScalar,
   };
 })();
