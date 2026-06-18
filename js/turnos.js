@@ -132,7 +132,7 @@ const TurnosModule = (() => {
     const editHidden = canEditTurnos() ? '' : ' hidden';
 
     return `
-    <tr class="turno-row urgency-${urgCls}${isOpen ? ' turno-row--open' : ''}" data-turno-id="${turno.id}">
+    <tr class="turno-row urgency-${urgCls}${isOpen ? ' turno-row--open' : ' turno-patient-end'}" data-turno-id="${turno.id}">
       <td class="col-expand" aria-hidden="true">
         <span class="turno-expand-icon"><i class="ti ti-chevron-${isOpen ? 'up' : 'down'}"></i></span>
       </td>
@@ -140,7 +140,10 @@ const TurnosModule = (() => {
         <strong>${escapeHtml(turno.paciente)}</strong>
         <br><span class="date-text">${escapeHtml(turno.patologia)}</span>
       </td>
-      <td>${escapeHtml(r.etapa)}</td>
+      <td>
+        <span class="turno-etapa">${escapeHtml(r.etapa)}</span>
+        ${r.etapaDetalle ? `<br><span class="turno-etapa-detail">${escapeHtml(r.etapaDetalle)}</span>` : ''}
+      </td>
       <td>${badgeHtml(URG_BADGE, turno.urgencia)}</td>
       <td>${badgeHtml(GEN_BADGE, r.estadoGeneral)}</td>
       <td class="col-act">
@@ -150,7 +153,7 @@ const TurnosModule = (() => {
       </td>
     </tr>
     ${isOpen ? `
-    <tr class="turno-expand-row" data-turno-expand="${turno.id}">
+    <tr class="turno-expand-row turno-patient-end" data-turno-expand="${turno.id}">
       <td colspan="6">${panelHtml(turno)}</td>
     </tr>` : ''}`;
   }
@@ -171,7 +174,13 @@ const TurnosModule = (() => {
 
     if (expandedId && !rows.some(t => t.id === expandedId)) expandedId = null;
 
-    tbody.innerHTML = rows.map(rowPairHtml).join('');
+    tbody.innerHTML = rows.map((turno, i) => {
+      const pair = rowPairHtml(turno);
+      const gap = i < rows.length - 1
+        ? '<tr class="turno-gap" aria-hidden="true"><td colspan="6"></td></tr>'
+        : '';
+      return pair + gap;
+    }).join('');
   }
 
   function toggleExpand(id) {

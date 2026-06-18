@@ -109,9 +109,10 @@ const ExportPrint = (() => {
     const rows = appData.turnosUrgentes.map(t => {
       const n = typeof TurnosModel !== 'undefined' ? TurnosModel.normalize(t) : t;
       const r = typeof TurnosModel !== 'undefined' ? TurnosModel.resumen(n) : { estadoGeneral: t.estado, etapa: '', completados: 0, total: 0 };
+      const etapa = typeof TurnosModel !== 'undefined' ? TurnosModel.etapaTexto(r) : r.etapa;
       const cir = n.turnoCirugia || {};
       return [
-        n.paciente, n.patologia, n.urgencia, r.estadoGeneral, r.etapa,
+        n.paciente, n.patologia, n.urgencia, r.estadoGeneral, etapa,
         `${r.completados}/${r.total}`, cir.especialista || '', cir.fecha || '', cir.estado || '', n.notas || '',
       ];
     });

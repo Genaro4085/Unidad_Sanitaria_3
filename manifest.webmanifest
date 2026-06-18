@@ -10,7 +10,7 @@
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui", "browser"],
   "orientation": "any",
-  "background_color": "#F8FAFC",
+  "background_color": "#F5F2EB",
   "theme_color": "#1E3A8A",
   "categories": ["medical", "productivity", "government", "health"],
   "prefer_related_applications": false,

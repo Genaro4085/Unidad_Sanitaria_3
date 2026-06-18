@@ -68,6 +68,40 @@ const TurnosModel = (() => {
     return !!step?.activa;
   }
 
+  function isStepActivo(step) {
+    if (!step) return false;
+    return step.estado === ESTADO.PENDIENTE || step.estado === ESTADO.SOLICITADO;
+  }
+
+  function imagenTieneDatos(img) {
+    return !!(img?.fecha || img?.detalle || (img?.estado && img.estado !== ESTADO.PENDIENTE));
+  }
+
+  function primerInterconsultaPendiente(turno) {
+    for (const { key, label } of INTERCONSULTAS) {
+      const s = turno.interconsultas?.[key];
+      if (interconsultaAplicada(s) && isStepActivo(s)) return label;
+    }
+    return null;
+  }
+
+  function primerPrequirurgicoPendiente(turno) {
+    for (const { key, label } of PREQUIRURGICOS) {
+      if (isStepActivo(turno.prequirurgicos?.[key])) return label;
+    }
+    return null;
+  }
+
+  function primerEstudioPendiente(turno) {
+    for (const img of turno.imagenes || []) {
+      if (!imagenTieneDatos(img) || !isStepActivo(img)) continue;
+      const base = tipoImagenLabel(img.tipo);
+      if (img.detalle?.trim()) return `${base} — ${img.detalle.trim()}`;
+      return base;
+    }
+    return null;
+  }
+
   function emptyImagen() {
     return { tipo: 'tomografia', fecha: '', estado: ESTADO.PENDIENTE, detalle: '' };
   }
@@ -216,13 +250,11 @@ const TurnosModel = (() => {
     let etapa = 'Interconsultas';
     const pendingInter = INTERCONSULTAS.some(({ key }) => {
       const s = turno.interconsultas?.[key];
-      return interconsultaAplicada(s) && (s.estado === ESTADO.PENDIENTE || s.estado === ESTADO.SOLICITADO);
+      return interconsultaAplicada(s) && isStepActivo(s);
     });
     const hasInter = INTERCONSULTAS.some(({ key }) => interconsultaAplicada(turno.interconsultas?.[key]));
-    const pendingPre = PREQUIRURGICOS.some(({ key }) =>
-      turno.prequirurgicos?.[key]?.estado === ESTADO.PENDIENTE
-    );
-    const pendingImg = (turno.imagenes || []).some(i => i.estado === ESTADO.PENDIENTE);
+    const pendingPre = PREQUIRURGICOS.some(({ key }) => isStepActivo(turno.prequirurgicos?.[key]));
+    const pendingImg = (turno.imagenes || []).some(i => imagenTieneDatos(i) && isStepActivo(i));
     const cir = turno.turnoCirugia || {};
 
     if (cir.estado === ESTADO.COMPLETADO) etapa = 'Intervención quirúrgica acordada';
@@ -233,12 +265,33 @@ const TurnosModel = (() => {
     else if (!pendingInter) etapa = 'Prequirúrgicos';
     else if (noQuiere) etapa = 'Con pasos rechazados';
 
+    let etapaDetalle = null;
+    if (cir.estado === ESTADO.COMPLETADO && cir.fecha) {
+      etapaDetalle = fmtDate(cir.fecha);
+    } else if (hasInter && cir.estado !== ESTADO.NO_QUIERE) {
+      if (!pendingInter && !pendingPre && !pendingImg) {
+        if (cir.fecha) etapaDetalle = fmtDate(cir.fecha);
+      } else if (!pendingInter && !pendingPre) {
+        etapaDetalle = primerEstudioPendiente(turno);
+      } else if (!pendingInter) {
+        etapaDetalle = primerPrequirurgicoPendiente(turno);
+      } else {
+        etapaDetalle = primerInterconsultaPendiente(turno);
+      }
+    }
+
     let estadoGeneral = 'en_proceso';
     if (completados === 0 && !noQuiere) estadoGeneral = 'pendiente';
     if (cir.estado === ESTADO.COMPLETADO) estadoGeneral = 'completado';
     if (noQuiere || cir.estado === ESTADO.NO_QUIERE) estadoGeneral = 'no_quiere';
 
-    return { pct, etapa, estadoGeneral, completados, total, noQuiere };
+    return { pct, etapa, etapaDetalle, estadoGeneral, completados, total, noQuiere };
+  }
+
+  function etapaTexto(resumenObj) {
+    if (!resumenObj) return '';
+    const { etapa, etapaDetalle } = resumenObj;
+    return etapaDetalle ? `${etapa} · ${etapaDetalle}` : etapa;
   }
 
   function fmtDate(dateStr) {
@@ -358,6 +411,7 @@ const TurnosModel = (() => {
     normalize,
     normalizeAll,
     resumen,
+    etapaTexto,
     allSteps,
     flujoDetalle,
     pasoIcon,
