@@ -514,36 +514,55 @@ const AdminModule = (() => {
     const chartEl = document.getElementById('trimestralChart');
     if (!chartEl) return;
 
-    const compareFields = TRIMESTRAL_FIELDS.filter(f => !TrimestralModel.isScalarField(f.key));
+    const compareFields = TRIMESTRAL_FIELDS;
     const quarters = QUARTERS;
-    const series = compareFields.map(f => quarters.map(q => {
-      const totals = TrimestralModel.quarterTotals(appData.trimestral[q.key] || {});
-      return totals[f.key] ?? 0;
-    }));
-    const barMaxPx = 88;
 
-    const rows = compareFields.map((f, fi) => {
-      const rowMax = Math.max(...series[fi], 1);
-      const bars = quarters.map((q, qi) => {
-        const v = series[fi][qi];
-        const h = Math.max(2, Math.round((v / rowMax) * barMaxPx));
-        return `<div class="bar-fill bar-fill--q${qi + 1}" style="height:${h}px" title="${q.short}: ${v}"></div>`;
+    const quarterCharts = quarters.map((q, qi) => {
+      const totals = TrimestralModel.quarterTotals(appData.trimestral[q.key] || {});
+      const values = compareFields.map(f => totals[f.key] ?? 0);
+      const quarterMax = Math.max(...values, 1);
+
+      const total = values.reduce((a, b) => a + b, 0);
+
+      const bars = compareFields.map((f, fi) => {
+        const v = values[fi];
+        const hPct = Math.max(4, Math.round((v / quarterMax) * 100));
+        return `
+          <div class="trim-q-bar-item" title="${escapeHtml(f.label)}: ${v}">
+            <div class="trim-q-bar-track">
+              <span class="trim-q-bar-tip">${v}</span>
+              <div class="bar-fill bar-fill--q${qi + 1}" style="height:${hPct}%"></div>
+            </div>
+            <span class="trim-q-bar-icon"><i class="ti ${f.icon}"></i></span>
+          </div>`;
       }).join('');
+
       return `
-        <div class="trim-compare-indicator">
-          <span class="trim-compare-label">${escapeHtml(f.label)}</span>
-          <div class="bar-chart bar-chart--compact">${bars}</div>
-          <div class="trim-compare-qlabels">${quarters.map(q => `<span>${q.short}</span>`).join('')}</div>
+        <div class="trim-compare-quarter trim-compare-quarter--q${qi + 1}">
+          <div class="trim-compare-quarter__head">
+            <span class="trim-compare-badge">${escapeHtml(q.short)}</span>
+            <span class="trim-compare-total" title="Total del trimestre">${total}</span>
+          </div>
+          <div class="bar-chart trim-q-bar-chart">${bars}</div>
         </div>`;
     }).join('');
 
+    const legend = compareFields.map(f => `
+      <span class="trim-compare-legend-item" title="${escapeHtml(f.label)}">
+        <i class="ti ${f.icon}"></i> ${escapeHtml(f.label)}
+      </span>`).join('');
+
     chartEl.innerHTML = `
-      <div class="chart-card trim-compare-card">
-        <h3>Comparativa trimestral</h3>
-        <div class="trim-compare-grid">${rows}</div>
-        <div class="chart-legend trim-compare-legend">
-          ${quarters.map((q, i) => `<span><i class="trim-legend-swatch bar-fill--q${i + 1}"></i> ${escapeHtml(q.label)}</span>`).join('')}
+      <div class="trim-compare-wrap">
+        <div class="trim-compare-heading">
+          <i class="ti ti-chart-dots"></i>
+          <div>
+            <strong>Comparativa trimestral</strong>
+            <span>Totales por indicador en cada trimestre</span>
+          </div>
         </div>
+        <div class="trim-compare-quarters">${quarterCharts}</div>
+        <div class="trim-compare-legend">${legend}</div>
       </div>`;
   }
 
