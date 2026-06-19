@@ -101,6 +101,8 @@
   line-height: 1.65;
   margin-bottom: var(--space-md);
   font-size: 0.95rem;
+  text-align: justify;
+  text-justify: inter-word;
 }
 
 .landing__facts {
