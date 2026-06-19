@@ -438,9 +438,13 @@ const AdminModule = (() => {
             onchange="AdminModule.updateTrimestralScalar('${f.key}', this.value)" />`
         : `<div class="trimestral-count">${val}</div>`;
       return `
-      <div class="trimestral-item">
+      <div class="trimestral-item trimestral-item--scalar">
         <label><i class="ti ${f.icon}"></i> ${escapeHtml(f.label)}</label>
-        ${input}
+        <div class="trimestral-scalar-body">${input}</div>
+        <div class="trim-item-foot">
+          <span>Total</span>
+          <strong id="trim-total-${f.key}">${val}</strong>
+        </div>
       </div>`;
     }
 
@@ -611,6 +615,10 @@ const AdminModule = (() => {
 
     appData.trimestral[currentQuarter][field] = newVal;
     saveData();
+
+    const totalEl = document.getElementById('trim-total-' + field);
+    if (totalEl) totalEl.textContent = newVal;
+
     renderTrimestralCompare();
 
     const fieldDef = TRIMESTRAL_FIELDS.find(f => f.key === field);
