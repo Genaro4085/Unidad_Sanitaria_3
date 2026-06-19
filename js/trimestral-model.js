@@ -22,6 +22,7 @@ const TrimestralModel = (() => {
     { key: 'consultas', label: 'Consultas médicas', icon: 'ti-stethoscope' },
     { key: 'derivaciones', label: 'Derivaciones hospitalarias', icon: 'ti-building-hospital' },
     { key: 'laboratorios', label: 'Laboratorios', icon: 'ti-flask' },
+    { key: 'radiografias', label: 'Radiografías', icon: 'ti-photo-scan' },
     { key: 'vacunados', label: 'Vacunados', icon: 'ti-vaccine' },
   ];
 

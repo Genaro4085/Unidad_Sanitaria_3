@@ -1,4 +1,6 @@
-/* ── Licencias y Vacaciones Module ── */
+/* ── Licencias y Vacaciones Module ──
+ * Desactivado en el panel: js/features.js → US3Features.licencias = true para restaurar.
+ */
 
 const LicenciasModule = (() => {
   const TOTAL_DIAS = 30;

@@ -1,11 +1,6 @@
-/* ── Acceso al panel — landing / login ── */
-
-const PORTAL_AUTH_KEY = 'us3_portal_auth';
-const PORTAL_USER_KEY = 'us3_portal_user';
-const PORTAL_USER = 'us3';
-const PORTAL_PASS = 'us3';
+/* Acceso al panel — login único */
 (function () {
-  if (sessionStorage.getItem(PORTAL_AUTH_KEY) === 'true') {
+  if (US3Auth.isLoggedIn()) {
     window.location.replace('panel.html');
     return;
   }
@@ -17,17 +12,15 @@ const PORTAL_PASS = 'us3';
     e.preventDefault();
     const user = document.getElementById('portalUser').value.trim();
     const pass = document.getElementById('portalPass').value;
+    const account = US3Auth.authenticate(user, pass);
 
-    if (user === PORTAL_USER && pass === PORTAL_PASS) {
-      sessionStorage.setItem(PORTAL_AUTH_KEY, 'true');
-      sessionStorage.setItem(PORTAL_USER_KEY, user);
+    if (account) {
+      US3Auth.establishSession(account);
       window.location.href = 'panel.html';
       return;
     }
 
-    if (err) {
-      err.classList.remove('hidden');
-    }
+    err?.classList.remove('hidden');
     document.getElementById('portalPass').value = '';
     document.getElementById('portalPass').focus();
   });

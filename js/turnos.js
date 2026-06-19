@@ -1,16 +1,16 @@
 /* Módulo de control de turnos — integrado al diseño del panel */
 const TurnosModule = (() => {
-  const { ESTADO, ESTADO_LABELS, ESTADOS_INTERCONSULTA, INTERCONSULTAS, PREQUIRURGICOS, TIPOS_IMAGEN,
+  const { ESTADO, ESTADO_LABELS, ESTADOS_PASO, INTERCONSULTAS, PREQUIRURGICOS, TIPOS_IMAGEN,
     createEmpty, normalize, resumen, flujoDetalle, fmtDate, pasoEstadoLabel } = TurnosModel;
 
   let editingId = null;
   let expandedId = null;
 
   const PASO_BADGE = {
-    pendiente: ['badge-pend', 'Pendiente'],
-    solicitado: ['badge-done', 'Solicitado'],
-    completado: ['badge-ok', 'Realizado'],
-    no_quiere: ['badge-urg', 'No desea'],
+    solicitado: ['badge-pend', 'Solicitado'],
+    otorgado: ['badge-done', 'Otorgado'],
+    realizado: ['badge-ok', 'Realizado'],
+    no_requiere: ['badge-urg', 'No requiere'],
   };
 
   const URG_BADGE = {
@@ -45,10 +45,10 @@ const TurnosModule = (() => {
 
   function modalPasoClass(estado) {
     const map = {
-      pendiente: 'turno-paso--pend',
-      solicitado: 'turno-paso--proc',
-      completado: 'turno-paso--done',
-      no_quiere: 'turno-paso--no',
+      solicitado: 'turno-paso--pend',
+      otorgado: 'turno-paso--proc',
+      realizado: 'turno-paso--done',
+      no_requiere: 'turno-paso--no',
     };
     return map[estado] || 'turno-paso--pend';
   }
@@ -207,7 +207,7 @@ const TurnosModule = (() => {
     <div class="turno-step-row turno-inter-row ${modalPasoClass(e.estado)}" data-inter-key="${key}">
       <span class="turno-step-label">${escapeHtml(label)}</span>
       <input type="date" class="form-input turno-step-fecha" data-field="fecha" value="${escapeHtml(e.fecha || '')}">
-      <select class="form-select turno-step-estado" data-field="estado">${estadoOpts(ESTADOS_INTERCONSULTA, e.estado)}</select>
+      <select class="form-select turno-step-estado" data-field="estado">${estadoOpts(ESTADOS_PASO, e.estado)}</select>
       <button type="button" class="btn btn-sm btn-ghost turno-inter-remove" aria-label="Quitar"><i class="ti ti-trash"></i></button>
     </div>`;
   }
@@ -249,14 +249,14 @@ const TurnosModule = (() => {
       turno.interconsultas[key] = {
         activa: true,
         fecha: row.querySelector('[data-field="fecha"]')?.value || '',
-        estado: row.querySelector('[data-field="estado"]')?.value || ESTADO.PENDIENTE,
+        estado: row.querySelector('[data-field="estado"]')?.value || ESTADO.SOLICITADO,
       };
     });
   }
 
   function stepRowHtml(prefix, label, step, estados) {
     const e = step || TurnosModel.emptyStep();
-    const opts = estadoOpts(estados || ['pendiente', 'solicitado', 'completado', 'no_quiere'], e.estado);
+    const opts = estadoOpts(ESTADOS_PASO, e.estado);
     return `
     <div class="turno-step-row ${modalPasoClass(e.estado)}" data-prefix="${prefix}">
       <span class="turno-step-label">${escapeHtml(label)}</span>
@@ -278,10 +278,7 @@ const TurnosModule = (() => {
     const tipoOpts = TIPOS_IMAGEN.map(t =>
       `<option value="${t.value}"${e.tipo === t.value ? ' selected' : ''}>${t.label}</option>`
     ).join('');
-    const estOpts = Object.entries(ESTADO_LABELS)
-      .filter(([k]) => k !== 'programado')
-      .map(([k, lbl]) => `<option value="${k}"${e.estado === k ? ' selected' : ''}>${lbl}</option>`)
-      .join('');
+    const estOpts = estadoOpts(ESTADOS_PASO, e.estado);
     const removeBtn = idx > 0
       ? `<button type="button" class="btn btn-sm btn-ghost turno-img-remove" aria-label="Quitar estudio"><i class="ti ti-trash"></i></button>`
       : '';
@@ -310,7 +307,7 @@ const TurnosModule = (() => {
 
     const cir = turno.turnoCirugia || {};
     document.getElementById('turnoCirFecha').value = cir.fecha || '';
-    document.getElementById('turnoCirEstado').value = cir.estado || ESTADO.PENDIENTE;
+    document.getElementById('turnoCirEstado').value = cir.estado || ESTADO.SOLICITADO;
 
     buildInterconsultasList(turno);
     buildPrequirurgicosGrid(turno);
@@ -347,7 +344,7 @@ const TurnosModule = (() => {
   function readStepFromRow(row) {
     return {
       fecha: row.querySelector('[data-field="fecha"]')?.value || '',
-      estado: row.querySelector('[data-field="estado"]')?.value || ESTADO.PENDIENTE,
+      estado: row.querySelector('[data-field="estado"]')?.value || ESTADO.SOLICITADO,
     };
   }
 
@@ -375,7 +372,7 @@ const TurnosModule = (() => {
         tipo: row.querySelector('[data-field="tipo"]')?.value || 'tomografia',
         detalle: row.querySelector('[data-field="detalle"]')?.value?.trim() || '',
         fecha: row.querySelector('[data-field="fecha"]')?.value || '',
-        estado: row.querySelector('[data-field="estado"]')?.value || ESTADO.PENDIENTE,
+        estado: row.querySelector('[data-field="estado"]')?.value || ESTADO.SOLICITADO,
       });
     });
     if (!turno.imagenes.length) turno.imagenes = [TurnosModel.emptyImagen()];
@@ -415,11 +412,16 @@ const TurnosModule = (() => {
       }
     }
 
+    const labSynced = typeof TurnosLabSync !== 'undefined'
+      && TurnosLabSync.syncAll({ persist: false, silent: false });
     saveData();
     closeModal();
     render();
     if (typeof DashboardModule !== 'undefined' && currentView === 'dashboard') DashboardModule.render();
     updateAuthUI();
+    if (labSynced && typeof showToast === 'function') {
+      showToast('Actualizado el listado de laboratorios prequirúrgicos pendientes.', 'success');
+    }
   }
 
   function deleteTurno() {
@@ -428,6 +430,9 @@ const TurnosModule = (() => {
     const t = appData.turnosUrgentes.find(x => x.id === editingId);
     appData.turnosUrgentes = (appData.turnosUrgentes || []).filter(x => x.id !== editingId);
     if (expandedId === editingId) expandedId = null;
+    if (typeof TurnosLabSync !== 'undefined') {
+      TurnosLabSync.syncAll({ persist: false, silent: true });
+    }
     saveData();
     if (typeof logAudit === 'function' && t) {
       logAudit({ modulo: 'Turnos', tabla: 'turnos_urgentes', accion: 'DELETE', registroId: String(editingId), detalle: `Se eliminó control de turno de ${t.paciente}` });

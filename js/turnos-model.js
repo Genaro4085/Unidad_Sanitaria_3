@@ -1,21 +1,21 @@
 /* Modelo de control de turnos quirúrgicos — US3 */
 const TurnosModel = (() => {
   const ESTADO = {
-    PENDIENTE: 'pendiente',
     SOLICITADO: 'solicitado',
-    COMPLETADO: 'completado',
-    NO_QUIERE: 'no_quiere',
+    OTORGADO: 'otorgado',
+    REALIZADO: 'realizado',
+    NO_REQUIERE: 'no_requiere',
   };
 
   const ESTADO_LABELS = {
-    pendiente: 'Pendiente',
     solicitado: 'Solicitado',
-    completado: 'Realizado',
-    no_quiere: 'No desea',
-    programado: 'Programado',
+    otorgado: 'Otorgado',
+    realizado: 'Realizado',
+    no_requiere: 'No requiere',
   };
 
-  const ESTADOS_INTERCONSULTA = ['pendiente', 'solicitado', 'completado', 'no_quiere'];
+  const ESTADOS_PASO = ['solicitado', 'otorgado', 'realizado', 'no_requiere'];
+  const ESTADOS_INTERCONSULTA = ESTADOS_PASO;
 
   const INTERCONSULTAS = [
     { key: 'cirugia_general', label: 'Cirugía general' },
@@ -57,11 +57,27 @@ const TurnosModel = (() => {
   ];
 
   function emptyStep() {
-    return { fecha: '', estado: ESTADO.PENDIENTE, activa: false };
+    return { fecha: '', estado: ESTADO.SOLICITADO, activa: false };
+  }
+
+  function mapEstado(estado, hasFecha) {
+    const map = {
+      pendiente: ESTADO.SOLICITADO,
+      solicitado: ESTADO.SOLICITADO,
+      otorgado: ESTADO.OTORGADO,
+      realizado: ESTADO.REALIZADO,
+      completado: ESTADO.REALIZADO,
+      no_quiere: ESTADO.NO_REQUIERE,
+      no_requiere: ESTADO.NO_REQUIERE,
+      programado: hasFecha ? ESTADO.REALIZADO : ESTADO.OTORGADO,
+    };
+    return map[estado] || ESTADO.SOLICITADO;
   }
 
   function normalizeStep(step) {
-    return { ...emptyStep(), ...(step || {}) };
+    const s = { ...emptyStep(), ...(step || {}) };
+    s.estado = mapEstado(s.estado, !!s.fecha);
+    return s;
   }
 
   function interconsultaAplicada(step) {
@@ -70,11 +86,11 @@ const TurnosModel = (() => {
 
   function isStepActivo(step) {
     if (!step) return false;
-    return step.estado === ESTADO.PENDIENTE || step.estado === ESTADO.SOLICITADO;
+    return step.estado === ESTADO.SOLICITADO || step.estado === ESTADO.OTORGADO;
   }
 
   function imagenTieneDatos(img) {
-    return !!(img?.fecha || img?.detalle || (img?.estado && img.estado !== ESTADO.PENDIENTE));
+    return !!(img?.fecha || img?.detalle || (img?.estado && img.estado !== ESTADO.SOLICITADO));
   }
 
   function primerInterconsultaPendiente(turno) {
@@ -103,7 +119,13 @@ const TurnosModel = (() => {
   }
 
   function emptyImagen() {
-    return { tipo: 'tomografia', fecha: '', estado: ESTADO.PENDIENTE, detalle: '' };
+    return { tipo: 'tomografia', fecha: '', estado: ESTADO.SOLICITADO, detalle: '' };
+  }
+
+  function normalizeImagen(img) {
+    const i = { ...emptyImagen(), ...(img || {}) };
+    i.estado = mapEstado(i.estado, !!i.fecha);
+    return i;
   }
 
   function emptyInterconsultas() {
@@ -128,21 +150,15 @@ const TurnosModel = (() => {
       interconsultas: emptyInterconsultas(),
       prequirurgicos: emptyPrequirurgicos(),
       imagenes: [emptyImagen()],
-      turnoCirugia: { fecha: '', estado: ESTADO.PENDIENTE },
+      turnoCirugia: { fecha: '', estado: ESTADO.SOLICITADO },
     };
-  }
-
-  function mapLegacyEstado(estado, hasFecha) {
-    if (estado === 'completado') return ESTADO.COMPLETADO;
-    if (estado === 'programado') return hasFecha ? ESTADO.COMPLETADO : ESTADO.PENDIENTE;
-    return ESTADO.PENDIENTE;
   }
 
   function legacyStep(fecha, estadoLegacy) {
     const has = !!fecha;
     return {
       fecha: fecha || '',
-      estado: mapLegacyEstado(estadoLegacy, has),
+      estado: mapEstado(estadoLegacy, has),
     };
   }
 
@@ -150,10 +166,18 @@ const TurnosModel = (() => {
     const o = {};
     INTERCONSULTAS.forEach(({ key }) => {
       const step = normalizeStep(interconsultas?.[key]);
-      if (step.activa || step.fecha || (step.estado && step.estado !== ESTADO.PENDIENTE)) {
+      if (step.activa || step.fecha || (step.estado && step.estado !== ESTADO.SOLICITADO)) {
         step.activa = true;
       }
       o[key] = step;
+    });
+    return o;
+  }
+
+  function normalizePrequirurgicos(raw) {
+    const o = emptyPrequirurgicos();
+    PREQUIRURGICOS.forEach(({ key }) => {
+      o[key] = normalizeStep(raw?.[key]);
     });
     return o;
   }
@@ -166,11 +190,11 @@ const TurnosModel = (() => {
         ...createEmpty(turno.id),
         ...turno,
         interconsultas: finalizeInterconsultas(turno.interconsultas),
-        prequirurgicos: { ...emptyPrequirurgicos(), ...(turno.prequirurgicos || {}) },
+        prequirurgicos: normalizePrequirurgicos(turno.prequirurgicos),
         imagenes: Array.isArray(turno.imagenes) && turno.imagenes.length
-          ? turno.imagenes.map(img => ({ ...emptyImagen(), ...img }))
+          ? turno.imagenes.map(normalizeImagen)
           : [emptyImagen()],
-        turnoCirugia: { ...createEmpty().turnoCirugia, ...(turno.turnoCirugia || {}) },
+        turnoCirugia: normalizeStep({ ...createEmpty().turnoCirugia, ...(turno.turnoCirugia || {}) }),
         v: 2,
       };
       delete t.turnoCirugia.especialista;
@@ -195,10 +219,10 @@ const TurnosModel = (() => {
         );
         if (espKey?.key === key) {
           step.activa = true;
-          step.estado = mapLegacyEstado(turno.estado, false);
+          step.estado = mapEstado(turno.estado, false);
         }
       }
-      if (step.fecha || (step.estado && step.estado !== ESTADO.PENDIENTE)) {
+      if (step.fecha || (step.estado && step.estado !== ESTADO.SOLICITADO)) {
         step.activa = true;
       }
       t.interconsultas[key] = step;
@@ -208,13 +232,13 @@ const TurnosModel = (() => {
       t.imagenes = [{
         ...emptyImagen(),
         fecha: turno.imagenes,
-        estado: mapLegacyEstado(turno.estado, true),
+        estado: mapEstado(turno.estado, true),
       }];
     }
 
     t.turnoCirugia = {
       fecha: '',
-      estado: mapLegacyEstado(turno.estado, false),
+      estado: mapEstado(turno.estado, false),
     };
 
     t.interconsultas = finalizeInterconsultas(t.interconsultas);
@@ -234,7 +258,7 @@ const TurnosModel = (() => {
     });
     PREQUIRURGICOS.forEach(({ key }) => steps.push(turno.prequirurgicos?.[key]));
     (turno.imagenes || []).forEach(img => {
-      if (img.fecha || img.estado !== ESTADO.PENDIENTE || img.detalle) steps.push(img);
+      if (img.fecha || img.estado !== ESTADO.SOLICITADO || img.detalle) steps.push(img);
     });
     steps.push(turno.turnoCirugia);
     return steps.filter(Boolean);
@@ -243,8 +267,8 @@ const TurnosModel = (() => {
   function resumen(turno) {
     const steps = allSteps(turno);
     const total = steps.length;
-    const completados = steps.filter(s => s.estado === ESTADO.COMPLETADO).length;
-    const noQuiere = steps.some(s => s.estado === ESTADO.NO_QUIERE);
+    const completados = steps.filter(s => s.estado === ESTADO.REALIZADO).length;
+    const noQuiere = steps.some(s => s.estado === ESTADO.NO_REQUIERE);
     const pct = total ? Math.round((completados / total) * 100) : 0;
 
     let etapa = 'Interconsultas';
@@ -257,8 +281,8 @@ const TurnosModel = (() => {
     const pendingImg = (turno.imagenes || []).some(i => imagenTieneDatos(i) && isStepActivo(i));
     const cir = turno.turnoCirugia || {};
 
-    if (cir.estado === ESTADO.COMPLETADO) etapa = 'Intervención quirúrgica acordada';
-    else if (cir.estado === ESTADO.NO_QUIERE) etapa = 'No desea intervención';
+    if (cir.estado === ESTADO.REALIZADO) etapa = 'Intervención quirúrgica acordada';
+    else if (cir.estado === ESTADO.NO_REQUIERE) etapa = 'No requiere intervención';
     else if (!hasInter) etapa = 'Sin interconsultas asignadas';
     else if (!pendingInter && !pendingPre && !pendingImg) etapa = 'Turno intervención quirúrgica';
     else if (!pendingInter && !pendingPre) etapa = 'Diagnóstico por imágenes';
@@ -266,9 +290,9 @@ const TurnosModel = (() => {
     else if (noQuiere) etapa = 'Con pasos rechazados';
 
     let etapaDetalle = null;
-    if (cir.estado === ESTADO.COMPLETADO && cir.fecha) {
+    if (cir.estado === ESTADO.REALIZADO && cir.fecha) {
       etapaDetalle = fmtDate(cir.fecha);
-    } else if (hasInter && cir.estado !== ESTADO.NO_QUIERE) {
+    } else if (hasInter && cir.estado !== ESTADO.NO_REQUIERE) {
       if (!pendingInter && !pendingPre && !pendingImg) {
         if (cir.fecha) etapaDetalle = fmtDate(cir.fecha);
       } else if (!pendingInter && !pendingPre) {
@@ -282,8 +306,8 @@ const TurnosModel = (() => {
 
     let estadoGeneral = 'en_proceso';
     if (completados === 0 && !noQuiere) estadoGeneral = 'pendiente';
-    if (cir.estado === ESTADO.COMPLETADO) estadoGeneral = 'completado';
-    if (noQuiere || cir.estado === ESTADO.NO_QUIERE) estadoGeneral = 'no_quiere';
+    if (cir.estado === ESTADO.REALIZADO) estadoGeneral = 'completado';
+    if (noQuiere || cir.estado === ESTADO.NO_REQUIERE) estadoGeneral = 'no_quiere';
 
     return { pct, etapa, etapaDetalle, estadoGeneral, completados, total, noQuiere };
   }
@@ -314,9 +338,9 @@ const TurnosModel = (() => {
 
   function estadoFase(steps) {
     if (!steps.length) return 'pendiente';
-    if (steps.every(s => s.estado === ESTADO.COMPLETADO)) return 'completado';
-    if (steps.some(s => s.estado === ESTADO.NO_QUIERE)) return 'no_quiere';
-    if (steps.some(s => s.estado === ESTADO.SOLICITADO || s.estado === ESTADO.COMPLETADO || s.fecha)) return 'en_proceso';
+    if (steps.every(s => s.estado === ESTADO.REALIZADO)) return 'completado';
+    if (steps.some(s => s.estado === ESTADO.NO_REQUIERE)) return 'no_quiere';
+    if (steps.some(s => s.estado === ESTADO.OTORGADO || s.estado === ESTADO.REALIZADO || s.fecha)) return 'en_proceso';
     return 'pendiente';
   }
 
@@ -332,7 +356,7 @@ const TurnosModel = (() => {
             key,
             label,
             fecha: t.interconsultas[key]?.fecha || '',
-            estado: t.interconsultas[key]?.estado || ESTADO.PENDIENTE,
+            estado: t.interconsultas[key]?.estado || ESTADO.SOLICITADO,
           })),
       },
       {
@@ -343,7 +367,7 @@ const TurnosModel = (() => {
           key,
           label,
           fecha: t.prequirurgicos[key]?.fecha || '',
-          estado: t.prequirurgicos[key]?.estado || ESTADO.PENDIENTE,
+          estado: t.prequirurgicos[key]?.estado || ESTADO.SOLICITADO,
         })),
       },
       {
@@ -351,12 +375,12 @@ const TurnosModel = (() => {
         label: 'Diagnóstico por imágenes',
         icon: 'ti-photo-scan',
         steps: (t.imagenes || [])
-          .filter(img => img.fecha || img.estado !== ESTADO.PENDIENTE || img.detalle)
+          .filter(img => img.fecha || img.estado !== ESTADO.SOLICITADO || img.detalle)
           .map((img, i) => ({
           key: `img-${i}`,
           label: tipoImagenLabel(img.tipo) + (img.detalle ? ` — ${img.detalle}` : ''),
           fecha: img.fecha || '',
-          estado: img.estado || ESTADO.PENDIENTE,
+          estado: img.estado || ESTADO.SOLICITADO,
         })),
       },
       {
@@ -367,14 +391,14 @@ const TurnosModel = (() => {
           key: 'cirugia',
           label: 'Fecha cirugía',
           fecha: t.turnoCirugia?.fecha || '',
-          estado: t.turnoCirugia?.estado || ESTADO.PENDIENTE,
+          estado: t.turnoCirugia?.estado || ESTADO.SOLICITADO,
         }],
       },
     ];
 
     return fases.map(f => {
-      const completados = f.steps.filter(s => s.estado === ESTADO.COMPLETADO).length;
-      const rechazados = f.steps.filter(s => s.estado === ESTADO.NO_QUIERE).length;
+      const completados = f.steps.filter(s => s.estado === ESTADO.REALIZADO).length;
+      const rechazados = f.steps.filter(s => s.estado === ESTADO.NO_REQUIERE).length;
       return {
         ...f,
         completados,
@@ -386,8 +410,9 @@ const TurnosModel = (() => {
   }
 
   function pasoIcon(estado) {
-    if (estado === ESTADO.COMPLETADO) return 'ti-check';
-    if (estado === ESTADO.NO_QUIERE) return 'ti-x';
+    if (estado === ESTADO.REALIZADO) return 'ti-check';
+    if (estado === ESTADO.NO_REQUIERE) return 'ti-x';
+    if (estado === ESTADO.OTORGADO) return 'ti-calendar-event';
     return 'ti-clock';
   }
 
@@ -398,6 +423,7 @@ const TurnosModel = (() => {
   return {
     ESTADO,
     ESTADO_LABELS,
+    ESTADOS_PASO,
     ESTADOS_INTERCONSULTA,
     INTERCONSULTAS,
     PREQUIRURGICOS,

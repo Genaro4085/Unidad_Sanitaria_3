@@ -19,7 +19,7 @@ const AUDIT_PAT_LABELS = {
 };
 
 function isAdmin() {
-  return sessionStorage.getItem('us3_auth_session') === 'true';
+  return typeof US3Auth !== 'undefined' ? US3Auth.isAdmin() : sessionStorage.getItem('us3_auth_session') === 'true';
 }
 
 function getAuditUser() {
@@ -29,7 +29,7 @@ function getAuditUser() {
 function formatAuditUser(raw) {
   const u = String(raw || '').trim();
   if (!u) return 'Sistema';
-  if (u.toLowerCase() === 'admin') return 'Administrador';
+  if (u.toLowerCase() === 'admin' || u.toLowerCase() === 'genaro') return 'Genaro';
   return u.charAt(0).toUpperCase() + u.slice(1);
 }
 
@@ -55,9 +55,13 @@ function replaceAuditLog(entries) {
   persistAuditLog(entries);
 }
 
-/** Registra una acción (solo cuando hay sesión de edición activa). */
+/** Registra una acción (cuando hay sesión con permiso de edición en algún módulo). */
 function logAudit({ modulo, tabla, accion, registroId, detalle }) {
-  if (typeof canEdit === 'function' && !canEdit()) return;
+  const canLog = (typeof canEdit === 'function' && canEdit())
+    || (typeof canEditPatologias === 'function' && canEditPatologias())
+    || (typeof canEditTrimestral === 'function' && canEditTrimestral())
+    || (typeof canEditLaboratorios === 'function' && canEditLaboratorios());
+  if (!canLog) return;
 
   const entry = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,

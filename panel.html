@@ -16,7 +16,7 @@
   <link rel="apple-touch-icon" href="/icons/icon-192.png" />
   <script>
     (function () {
-      if (sessionStorage.getItem('us3_portal_auth') !== 'true') {
+      if (sessionStorage.getItem('us3_portal_auth') !== 'true' || !sessionStorage.getItem('us3_auth_role')) {
         window.location.replace('index.html');
         return;
       }
@@ -31,7 +31,7 @@
   <link rel="stylesheet" href="css/tabler-icons.min.css" />
   <link rel="stylesheet" href="css/design-system.css" />
   <link rel="stylesheet" href="css/inst-header.css" />
-  <link rel="stylesheet" href="css/app.css?v=trim2" />
+  <link rel="stylesheet" href="css/app.css?v=trim5" />
   <link rel="stylesheet" href="css/motion.css" />
   <link rel="stylesheet" href="css/pwa.css" />
 </head>
@@ -86,7 +86,7 @@
 </header>
 
 <div class="panel-strip">
-  <h1 class="panel-strip__title" id="panelViewTitle">Dashboard</h1>
+  <h1 class="panel-strip__title" id="panelViewTitle">Patologías</h1>
   <div class="panel-strip__meta">
     <span class="meta-pill meta-pill--datetime" id="panelDateTime"><i class="ti ti-calendar"></i> —</span>
     <span class="meta-pill meta-pill--weather" id="panelWeather" title="Clima — San Nicolás de los Arroyos"><i class="ti ti-cloud"></i> —</span>
@@ -106,29 +106,27 @@
       <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Colapsar menú"><i class="ti ti-layout-sidebar-left-collapse"></i></button>
     </div>
     <nav aria-label="Navegación principal">
-      <button type="button" class="nav-item" data-view="patologias"><i class="ti ti-heart-rate-monitor"></i><span>Patologías</span></button>
+      <button type="button" class="nav-item active" data-view="patologias"><i class="ti ti-heart-rate-monitor"></i><span>Patologías</span></button>
       <button type="button" class="nav-item" data-view="trimestral"><i class="ti ti-chart-bar"></i><span>Trimestrales</span></button>
       <button type="button" class="nav-item" data-view="turnos"><i class="ti ti-urgent"></i><span>Turnos</span></button>
-      <button type="button" class="nav-item" data-view="licencias"><i class="ti ti-users"></i><span>Licencias</span></button>
+      <button type="button" class="nav-item feature-licencias" data-feature="licencias" data-view="licencias"><i class="ti ti-users"></i><span>Licencias</span></button>
       <button type="button" class="nav-item" data-view="laboratorios"><i class="ti ti-test-pipe"></i><span>Laboratorios</span></button>
-      <button type="button" class="nav-item active" data-view="dashboard"><i class="ti ti-layout-dashboard"></i><span>Dashboard</span></button>
+      <button type="button" class="nav-item" data-view="dashboard"><i class="ti ti-layout-dashboard"></i><span>Dashboard</span></button>
       <button type="button" class="nav-item" data-view="administracion"><i class="ti ti-shield-lock"></i><span>Admin</span></button>
       <button type="button" class="nav-item" data-view="configuracion"><i class="ti ti-settings"></i><span>Configuración</span></button>
     </nav>
     <div class="sidebar__footer">
-      <div class="auth-status" id="authStatus" title="Modo solo lectura">
+      <div class="auth-status" id="authStatus" title="Sesión activa">
         <span class="auth-dot readonly" id="authDot"></span>
-        <span id="authLabel">Solo lectura</span>
+        <span id="authLabel">Cargando…</span>
       </div>
-      <button type="button" class="btn btn-primary" id="btnLogin" style="width:100%;justify-content:center"><i class="ti ti-login"></i><span>Iniciar sesión</span></button>
-      <button type="button" class="btn btn-secondary" id="btnLogout" style="width:100%;justify-content:center;display:none;margin-top:8px"><i class="ti ti-logout"></i><span>Cerrar sesión</span></button>
-      <button type="button" class="btn btn-secondary" id="btnPortalLogout" style="width:100%;justify-content:center;margin-top:8px"><i class="ti ti-door-exit"></i><span>Salir del panel</span></button>
+      <button type="button" class="btn btn-secondary" id="btnLogout" style="width:100%;justify-content:center;margin-top:8px"><i class="ti ti-logout"></i><span>Cerrar sesión</span></button>
     </div>
   </aside>
 
   <main class="main-content">
 
-    <section class="view active" id="view-dashboard">
+    <section class="view" id="view-dashboard">
       <div class="view-toolbar no-print">
         <span class="view-toolbar__spacer" aria-hidden="true"></span>
         <div class="view-toolbar__actions">
@@ -147,7 +145,7 @@
       </details>
     </section>
 
-    <section class="view" id="view-licencias">
+    <section class="view feature-licencias" id="view-licencias" data-feature="licencias">
       <div class="view-toolbar no-print">
         <span class="view-toolbar__spacer" aria-hidden="true"></span>
         <div class="view-toolbar__actions">
@@ -213,7 +211,7 @@
       </div>
     </section>
 
-    <section class="view" id="view-patologias">
+    <section class="view active" id="view-patologias">
       <div class="view-toolbar no-print">
         <div class="readonly-banner readonly-banner--mini hidden" id="readonlyBanner"><i class="ti ti-eye"></i> Solo lectura</div>
         <div class="view-toolbar__actions">
@@ -236,7 +234,7 @@
       </div>
       <div class="quarter-selector" id="quarterSelector"></div>
       <div class="trimestral-grid" id="trimestralGrid"></div>
-      <div class="charts-row no-print" id="trimestralChart" style="margin-top:20px"></div>
+      <div class="charts-row trimestral-compare" id="trimestralChart" style="margin-top:20px"></div>
     </section>
 
     <section class="view" id="view-turnos">
@@ -287,21 +285,19 @@
         <div class="view-toolbar__actions">
           <button type="button" class="btn btn-secondary" onclick="ExportPrint.print('administracion')"><i class="ti ti-printer"></i> Imprimir</button>
           <button type="button" class="btn btn-secondary" onclick="ExportPrint.exportCsv('administracion')"><i class="ti ti-download"></i> Exportar CSV</button>
-          <button type="button" class="btn btn-primary" id="btnLoginAdmin"><i class="ti ti-login"></i> Iniciar sesión</button>
         </div>
       </div>
       <div class="auth-panel" style="margin-bottom:24px">
         <h3 style="font-size:1rem;margin-bottom:12px">Acceso al sistema</h3>
-        <p style="font-size:13px;color:var(--slate);margin-bottom:16px">Usuario y contraseña con recuperación de acceso (próxima implementación).</p>
-        <button type="button" class="btn btn-secondary" style="width:100%;margin-bottom:8px"><i class="ti ti-key"></i> Recuperar contraseña</button>
-        <p class="hint" style="margin:0"><strong>Demo edición:</strong> admin / us3admin</p>
+        <p style="font-size:13px;color:var(--slate);margin-bottom:16px">El ingreso es único desde la página de acceso (<code>index.html</code>). Cada usuario tiene permisos según su rol.</p>
+        <p class="hint" style="margin:0">Para cerrar sesión usá el botón <strong>Cerrar sesión</strong> en el menú lateral.</p>
       </div>
-      <h3 style="font-size:1rem;margin-bottom:12px">Roles previstos</h3>
+      <h3 style="font-size:1rem;margin-bottom:12px">Roles activos</h3>
       <div class="role-grid">
-        <div class="role-card"><h4><i class="ti ti-crown"></i> Administrador</h4><p>Acceso total y configuración del sistema.</p></div>
-        <div class="role-card"><h4><i class="ti ti-stethoscope"></i> Personal médico</h4><p>Edición de registros clínicos y turnos.</p></div>
-        <div class="role-card"><h4><i class="ti ti-clipboard"></i> Administrativo</h4><p>Gestión de licencias y estadísticas.</p></div>
-        <div class="role-card"><h4><i class="ti ti-eye"></i> Solo lectura</h4><p>Visualización sin modificar información.</p></div>
+        <div class="role-card"><h4><i class="ti ti-crown"></i> Administrador</h4><p>Acceso total: turnos, laboratorios, personal, auditoría y configuración.</p></div>
+        <div class="role-card"><h4><i class="ti ti-chart-bar"></i> Trimestrales y patologías</h4><p>Edición de estadísticas trimestrales y módulo de patologías.</p></div>
+        <div class="role-card"><h4><i class="ti ti-heartbeat"></i> Patologías</h4><p>Edición exclusiva del módulo de patologías.</p></div>
+        <div class="role-card"><h4><i class="ti ti-eye"></i> Consulta</h4><p>El resto de módulos se visualiza en solo lectura según el rol asignado.</p></div>
       </div>
     </section>
 
@@ -378,7 +374,7 @@
           <option value="Trimestrales">Trimestrales</option>
           <option value="Turnos">Turnos</option>
           <option value="Laboratorios">Laboratorios</option>
-          <option value="Licencias">Licencias</option>
+          <option value="Licencias" data-feature="licencias">Licencias</option>
           <option value="Personal">Personal</option>
           <option value="Administración">Administración</option>
         </select>
@@ -443,7 +439,7 @@
 <div class="toast-root" id="toastRoot" aria-live="polite"></div>
 
 <!-- Modals (sin cambios funcionales) -->
-<div class="modal-overlay" id="licModal" role="dialog" aria-modal="true">
+<div class="modal-overlay feature-licencias" id="licModal" data-feature="licencias" role="dialog" aria-modal="true">
   <div class="modal">
     <div class="modal-header">
       <h2 class="modal-title" id="licModalTitle">Agregar tramo de licencia</h2>
@@ -583,7 +579,7 @@
         <h3 class="turno-section__title"><i class="ti ti-calendar-event"></i> Turno intervención quirúrgica</h3>
         <div class="form-grid">
           <div class="form-row"><label for="turnoCirFecha">Fecha cirugía</label><input type="date" id="turnoCirFecha" /></div>
-          <div class="form-row"><label for="turnoCirEstado">Estado</label><select id="turnoCirEstado"><option value="pendiente">Pendiente</option><option value="solicitado">Solicitado</option><option value="completado">Realizado</option><option value="no_quiere">No desea</option></select></div>
+          <div class="form-row"><label for="turnoCirEstado">Estado</label><select id="turnoCirEstado"><option value="solicitado">Solicitado</option><option value="otorgado">Otorgado</option><option value="realizado">Realizado</option><option value="no_requiere">No requiere</option></select></div>
         </div>
       </section>
       <div class="form-row"><label for="turnoNotas">Notas</label><textarea id="turnoNotas" rows="2" placeholder="Observaciones generales"></textarea></div>
@@ -596,24 +592,6 @@
   </div>
 </div>
 
-<div class="modal-overlay" id="loginOverlay" role="dialog" aria-modal="true">
-  <div class="modal">
-    <div class="modal-header">
-      <h2 class="modal-title">Iniciar sesión</h2>
-      <button type="button" class="modal-close" onclick="closeLogin()" aria-label="Cerrar"><i class="ti ti-x"></i></button>
-    </div>
-    <form id="loginForm">
-      <div class="form-row"><label for="loginUser">Usuario</label><input type="text" id="loginUser" autocomplete="username" required /></div>
-      <div class="form-row"><label for="loginPass">Contraseña</label><input type="password" id="loginPass" autocomplete="current-password" required /></div>
-      <p id="loginError" style="display:none;color:#b91c1c;font-size:13px;margin-top:8px"><i class="ti ti-alert-circle"></i> Credenciales incorrectas.</p>
-      <div class="modal-footer" style="border-top:none;padding-top:8px">
-        <button type="button" class="btn btn-secondary" onclick="closeLogin()">Cancelar</button>
-        <button type="submit" class="btn btn-primary"><i class="ti ti-login"></i> Ingresar</button>
-      </div>
-    </form>
-    <div class="login-hint"><strong>Edición:</strong> admin / us3admin</div>
-  </div>
-</div>
 
 <div id="pwaOfflineBanner" class="pwa-offline hidden" role="status" aria-live="polite">
   <i class="ti ti-wifi-off" aria-hidden="true"></i> Sin conexión — los datos del panel requieren internet.
@@ -642,18 +620,22 @@
 <script src="js/data-service.js?v=turnos9"></script>
 <script src="js/platform-sync.js"></script>
 <script src="js/audit.js"></script>
-<script src="js/export-print.js?v=trim2"></script>
+<script src="js/export-print.js?v=trim3"></script>
 <script src="js/motion.js"></script>
-<script src="js/trimestral-model.js?v=trim2"></script>
-<script src="js/app.js?v=trim2"></script>
+<script src="js/features.js?v=feat1"></script>
+<script src="js/auth.js?v=auth3"></script>
+<script src="js/trimestral-model.js?v=trim4"></script>
+<script src="js/app.js?v=feat4"></script>
 <script src="js/dashboard.js?v=trim2"></script>
+<!-- Módulo Licencias: oculto en menú (US3Features.licencias = false). Scripts intactos para reactivar. -->
 <script src="js/licencias-dias.js"></script>
 <script src="js/licencias-default.js"></script>
 <script src="js/licencias.js"></script>
-<script src="js/laboratorios.js"></script>
-<script src="js/turnos-model.js?v=turnos9"></script>
-<script src="js/turnos.js?v=turnos9"></script>
-<script src="js/administracion.js?v=trim2"></script>
+<script src="js/laboratorios.js?v=lab3"></script>
+<script src="js/turnos-model.js?v=turnos10"></script>
+<script src="js/turnos-lab-sync.js?v=labsync1"></script>
+<script src="js/turnos.js?v=turnos12"></script>
+<script src="js/administracion.js?v=trim5"></script>
 <script src="js/personal.js"></script>
 </body>
 </html>

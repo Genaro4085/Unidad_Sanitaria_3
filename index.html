@@ -16,7 +16,7 @@
   <link rel="apple-touch-icon" href="/icons/icon-192.png" />
   <script>
     (function () {
-      if (sessionStorage.getItem('us3_portal_auth') === 'true') {
+      if (sessionStorage.getItem('us3_portal_auth') === 'true' && sessionStorage.getItem('us3_auth_role')) {
         window.location.replace('panel.html');
         return;
       }
@@ -125,8 +125,7 @@
         </p>
       </form>
       <p class="landing__hint">
-        <strong>Acceso genérico (provisional):</strong> usuario <code>us3</code> — contraseña <code>us3</code>.<br>
-        En una próxima etapa cada agente contará con credenciales individuales.
+        Acceso restringido al personal habilitado. Si olvidaste tu contraseña, contactá al administrador del sistema.
       </p>
     </aside>
   </main>
@@ -155,6 +154,7 @@
   </div>
 
   <script src="js/pwa.js"></script>
-  <script src="js/login.js"></script>
+  <script src="js/auth.js?v=auth3"></script>
+  <script src="js/login.js?v=auth2"></script>
 </body>
 </html>

@@ -478,7 +478,7 @@ const AdminModule = (() => {
 
     const quarterData = appData.trimestral[currentQuarter];
     const months = TrimestralModel.monthLabels(currentQuarter);
-    const editable = canEdit();
+    const editable = typeof canEditTrimestral === 'function' ? canEditTrimestral() : false;
     const grid = document.getElementById('trimestralGrid');
 
     grid.innerHTML = TRIMESTRAL_FIELDS
@@ -488,33 +488,62 @@ const AdminModule = (() => {
     renderTrimestralCompare();
   }
 
+  function prepareTrimestralPrint() {
+    const grid = document.getElementById('trimestralGrid');
+    if (!grid) return null;
+    const restored = [];
+    grid.querySelectorAll('input[type="number"]').forEach(input => {
+      const span = document.createElement('span');
+      span.className = input.classList.contains('trim-item-min') ? 'trim-item-val' : 'trimestral-count';
+      span.textContent = input.value || '0';
+      const parent = input.parentNode;
+      parent.replaceChild(span, input);
+      restored.push({ parent, input, span });
+    });
+    return restored.length ? restored : null;
+  }
+
+  function restoreTrimestralPrint(restored) {
+    if (!restored?.length) return;
+    restored.forEach(({ parent, input, span }) => {
+      if (span.parentNode === parent) parent.replaceChild(input, span);
+    });
+  }
+
   function renderTrimestralCompare() {
     const chartEl = document.getElementById('trimestralChart');
     if (!chartEl) return;
 
-    const keys = ['oficios', 'odontologia', 'consultas', 'derivaciones'];
-    const labels = ['Oficios', 'Odontología', 'Consultas', 'Derivaciones'];
-    const quarters = QUARTERS.map(q => q.key);
-    const series = quarters.map(q => {
-      const totals = TrimestralModel.quarterTotals(appData.trimestral[q] || {});
-      return keys.map(k => totals[k] ?? 0);
-    });
-    const max = Math.max(...series.flat(), 1);
+    const compareFields = TRIMESTRAL_FIELDS.filter(f => !TrimestralModel.isScalarField(f.key));
+    const quarters = QUARTERS;
+    const series = compareFields.map(f => quarters.map(q => {
+      const totals = TrimestralModel.quarterTotals(appData.trimestral[q.key] || {});
+      return totals[f.key] ?? 0;
+    }));
+    const barMaxPx = 88;
 
-    const bars = quarters.map((q, qi) => {
-      const inner = keys.map((k, ki) => {
-        const v = series[qi][ki];
-        const h = Math.round((v / max) * 100);
-        return `<div class="bar-fill bar-fill--q${qi}" style="height:${h}%" title="${labels[ki]}: ${v}"></div>`;
+    const rows = compareFields.map((f, fi) => {
+      const rowMax = Math.max(...series[fi], 1);
+      const bars = quarters.map((q, qi) => {
+        const v = series[fi][qi];
+        const h = Math.max(2, Math.round((v / rowMax) * barMaxPx));
+        return `<div class="bar-fill bar-fill--q${qi + 1}" style="height:${h}px" title="${q.short}: ${v}"></div>`;
       }).join('');
-      return `<div class="trim-quarter-group"><div class="bar-chart bar-chart--compact">${inner}</div><span>${q.replace('2026-', 'T')}</span></div>`;
+      return `
+        <div class="trim-compare-indicator">
+          <span class="trim-compare-label">${escapeHtml(f.label)}</span>
+          <div class="bar-chart bar-chart--compact">${bars}</div>
+          <div class="trim-compare-qlabels">${quarters.map(q => `<span>${q.short}</span>`).join('')}</div>
+        </div>`;
     }).join('');
 
     chartEl.innerHTML = `
-      <div class="chart-card" style="grid-column:1/-1">
+      <div class="chart-card trim-compare-card">
         <h3>Comparativa trimestral</h3>
-        <div class="trim-compare-row">${bars}</div>
-        <div class="chart-legend">${labels.map(l => `<span>${l}</span>`).join('')}</div>
+        <div class="trim-compare-grid">${rows}</div>
+        <div class="chart-legend trim-compare-legend">
+          ${quarters.map((q, i) => `<span><i class="trim-legend-swatch bar-fill--q${i + 1}"></i> ${escapeHtml(q.label)}</span>`).join('')}
+        </div>
       </div>`;
   }
 
@@ -524,7 +553,7 @@ const AdminModule = (() => {
   }
 
   function updateTrimestralMonth(field, monthIdx, value) {
-    if (!canEdit()) return;
+    if (!canEditTrimestral()) return;
     ensureTrimestralQuarter();
     const mk = `m${monthIdx}`;
     const oldVal = appData.trimestral[currentQuarter][field][mk] ?? 0;
@@ -555,7 +584,7 @@ const AdminModule = (() => {
   }
 
   function updateTrimestralScalar(field, value) {
-    if (!canEdit()) return;
+    if (!canEditTrimestral()) return;
     ensureTrimestralQuarter();
     const oldVal = TrimestralModel.normalizeScalar(appData.trimestral[currentQuarter][field]);
     const newVal = Math.max(0, parseInt(value, 10) || 0);
@@ -606,7 +635,7 @@ const AdminModule = (() => {
 
     renderPatologias, updatePatologia, updatePoblacion, addInternoGrupo, removeInternoGrupo, renderTrimestral, selectQuarter,
 
-    updateTrimestralMonth, updateTrimestralScalar,
+    updateTrimestralMonth, updateTrimestralScalar, prepareTrimestralPrint, restoreTrimestralPrint,
 
     renderTurnos: () => typeof TurnosModule !== 'undefined' && TurnosModule.render(),
 

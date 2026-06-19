@@ -41,6 +41,7 @@ const ExportPrint = (() => {
       ['consultas', 'Consultas médicas'],
       ['derivaciones', 'Derivaciones hospitalarias'],
       ['laboratorios', 'Laboratorios'],
+      ['radiografias', 'Radiografías'],
       ['vacunados', 'Vacunados'],
     ];
 
@@ -145,7 +146,7 @@ const ExportPrint = (() => {
       ['Sección', 'Detalle'],
       ['Unidad', 'Unidad Sanitaria N°3'],
       ['Organismo', 'Dirección Provincial de Salud Penitenciaria'],
-      ['Sesión', typeof isAuthenticated !== 'undefined' && isAuthenticated ? 'Activa (edición)' : 'Solo lectura'],
+      ['Sesión', typeof US3Auth !== 'undefined' ? US3Auth.sessionLabel() : 'Solo lectura'],
       ['Exportado', stamp()],
       ['Rol', 'Descripción'],
       ['Administrador', 'Acceso total y configuración'],
@@ -232,12 +233,16 @@ const ExportPrint = (() => {
     if (!el) return;
 
     let personalPrepared = false;
+    let trimestralPrepared = null;
     if (v === 'personal' && typeof PersonalModule !== 'undefined' && PersonalModule.preparePrint) {
       personalPrepared = PersonalModule.preparePrint();
       if (!personalPrepared && typeof showToast === 'function') {
         showToast('El padrón aún no terminó de cargar', 'error');
         return;
       }
+    }
+    if (v === 'trimestral' && typeof AdminModule !== 'undefined' && AdminModule.prepareTrimestralPrint) {
+      trimestralPrepared = AdminModule.prepareTrimestralPrint();
     }
 
     const titleEl = el.querySelector('.view-title');
@@ -251,6 +256,9 @@ const ExportPrint = (() => {
     const done = () => {
       if (personalPrepared && typeof PersonalModule !== 'undefined' && PersonalModule.restoreAfterPrint) {
         PersonalModule.restoreAfterPrint();
+      }
+      if (trimestralPrepared && typeof AdminModule !== 'undefined' && AdminModule.restoreTrimestralPrint) {
+        AdminModule.restoreTrimestralPrint(trimestralPrepared);
       }
       document.body.classList.remove('is-printing');
       delete document.body.dataset.printView;

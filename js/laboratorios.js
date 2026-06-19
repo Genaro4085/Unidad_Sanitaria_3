@@ -227,6 +227,9 @@ const LaboratoriosModule = (() => {
   }
 
   function init() {
+    if (typeof TurnosLabSync !== 'undefined') {
+      TurnosLabSync.syncAll({ persist: true, silent: true });
+    }
     ensureIds();
     if (!initialized) {
       bindFilters();
@@ -235,8 +238,15 @@ const LaboratoriosModule = (() => {
       });
       initialized = true;
     }
-    setEditMode(typeof canEdit === 'function' ? canEdit() : false);
+    const canEditLabs = typeof canEditLaboratorios === 'function'
+      ? canEditLaboratorios()
+      : (typeof canEdit === 'function' ? canEdit() : false);
+    setEditMode(canEditLabs);
     renderTable();
+  }
+
+  function refresh() {
+    if (initialized) renderTable();
   }
 
   function rowsForExport() {
@@ -254,6 +264,6 @@ const LaboratoriosModule = (() => {
 
   return {
     init, openAdd, openEdit, closeModal, saveEntry, deleteEntry,
-    setEditMode, rowsForExport,
+    setEditMode, refresh, rowsForExport,
   };
 })();

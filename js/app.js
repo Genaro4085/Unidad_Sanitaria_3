@@ -8,10 +8,6 @@ const PORTAL_USER_KEY = 'us3_portal_user';
 const PATOLOGIAS_EDITORS_KEY = 'us3_patologias_editors';
 const THEME_KEY = 'us3_theme';
 
-/* Acceso al panel — credencial genérica (futuro: usuario por agente) */
-const PORTAL_USER = 'us3';
-const PORTAL_PASS = 'us3';
-
 const DEFAULT_DATA = {
   patologias: {
     asmaticos: 1,
@@ -61,11 +57,8 @@ if (!appData.patologiasGrupos) {
   appData.patologiasGrupos = structuredClone(DEFAULT_DATA.patologiasGrupos);
 }
 syncPatologiaGrupoCounts();
-let isAuthenticated = sessionStorage.getItem(AUTH_KEY) === 'true';
-if (isAuthenticated && !sessionStorage.getItem(AUTH_USER_KEY)) {
-  sessionStorage.setItem(AUTH_USER_KEY, 'Administrador');
-}
-let currentView = 'dashboard';
+let isAuthenticated = typeof US3Auth !== 'undefined' && US3Auth.isAdmin();
+let currentView = 'patologias';
 let currentQuarter = '2026-Q1';
 
 const VIEW_TITLES = {
@@ -134,17 +127,31 @@ function saveData() {
 function reloadAppDataFromStorage() {
   appData = loadData();
   syncPatologiaGrupoCounts();
-  if (typeof isAuthenticated !== 'undefined' && isAuthenticated && !sessionStorage.getItem(AUTH_USER_KEY)) {
-    sessionStorage.setItem(AUTH_USER_KEY, 'Administrador');
+  isAuthenticated = US3Auth.isAdmin();
+  if (typeof TurnosLabSync !== 'undefined') {
+    TurnosLabSync.syncAll({ persist: true, silent: true });
   }
 }
 
 function canEdit() {
-  return isAuthenticated;
+  return US3Auth.canEditAdminModules();
 }
 
 function isAdminUser() {
-  return isAuthenticated;
+  return US3Auth.isAdmin();
+}
+
+function canEditTrimestral() {
+  return US3Auth.canEditTrimestral();
+}
+
+function canEditLaboratorios() {
+  return US3Auth.canEditLaboratorios();
+}
+
+function isLabEditControl(el) {
+  if (!el) return false;
+  return !!el.closest('#view-laboratorios') || !!el.closest('#labModal') || el.id === 'btnLabAdd';
 }
 
 function normalizeEditorId(value) {
@@ -181,16 +188,9 @@ function revokePatologiasEdit(identifier) {
   setPatologiasEditors(getPatologiasEditors().filter(e => e !== id));
 }
 
-function getPortalUserId() {
-  return normalizeEditorId(sessionStorage.getItem(PORTAL_USER_KEY) || '');
-}
-
-/** Admin o agente con permiso explícito para modificar cantidades de patologías. */
+/** Admin o roles con permiso para modificar patologías. */
 function canEditPatologias() {
-  if (isAdminUser()) return true;
-  const user = getPortalUserId();
-  if (!user) return false;
-  return getPatologiasEditors().includes(user);
+  return US3Auth.canEditPatologias();
 }
 
 function showToast(message, type = 'info', duration = 3200) {
@@ -260,26 +260,32 @@ function updatePanelTitle(view) {
 function updateAuthUI() {
   const dot = document.getElementById('authDot');
   const label = document.getElementById('authLabel');
-  const loginBtn = document.getElementById('btnLogin');
   const logoutBtn = document.getElementById('btnLogout');
+  const loggedIn = US3Auth.isLoggedIn();
 
-  if (isAuthenticated) {
+  if (loggedIn) {
     if (dot) dot.className = 'auth-dot authed';
-    if (label) label.textContent = 'Activa';
-    if (loginBtn) loginBtn.style.display = 'none';
+    if (label) label.textContent = US3Auth.sessionLabel();
     if (logoutBtn) logoutBtn.style.display = 'inline-flex';
   } else {
     if (dot) dot.className = 'auth-dot readonly';
-    if (label) label.textContent = 'Solo lectura';
-    if (loginBtn) loginBtn.style.display = 'inline-flex';
+    if (label) label.textContent = 'Sin sesión';
     if (logoutBtn) logoutBtn.style.display = 'none';
   }
+
+  isAuthenticated = US3Auth.isAdmin();
 
   document.querySelectorAll('.admin-only').forEach(el => {
     el.classList.toggle('hidden', !isAdminUser());
   });
 
   const readOnlyViews = ['patologias', 'trimestral', 'turnos', 'laboratorios'];
+  const viewEditCheck = {
+    patologias: canEditPatologias,
+    trimestral: canEditTrimestral,
+    turnos: canEdit,
+    laboratorios: canEditLaboratorios,
+  };
   document.querySelectorAll('.readonly-banner').forEach(b => {
     const viewForBanner = {
       readonlyBanner: 'patologias',
@@ -287,9 +293,7 @@ function updateAuthUI() {
       readonlyBanner3: 'turnos',
       readonlyBannerLab: 'laboratorios',
     }[b.id];
-    const canEditView = viewForBanner === 'patologias'
-      ? canEditPatologias()
-      : canEdit();
+    const canEditView = viewEditCheck[viewForBanner]?.() ?? false;
     if (currentView === 'dashboard' || !readOnlyViews.includes(currentView) || viewForBanner !== currentView || canEditView) {
       b.classList.add('hidden');
     } else {
@@ -298,12 +302,14 @@ function updateAuthUI() {
   });
 
   document.querySelectorAll('.edit-only').forEach(el => {
-    el.classList.toggle('hidden', !canEdit());
-    if ('disabled' in el) el.disabled = !canEdit();
+    const allowed = isLabEditControl(el) ? canEditLaboratorios() : canEdit();
+    el.classList.toggle('hidden', !allowed);
+    if ('disabled' in el) el.disabled = !allowed;
   });
 
   document.querySelectorAll('.admin-edit-btn').forEach(el => {
-    el.classList.toggle('hidden', !canEdit());
+    const allowed = isLabEditControl(el) ? canEditLaboratorios() : canEdit();
+    el.classList.toggle('hidden', !allowed);
   });
 
   const urgCount = appData.turnosUrgentes.filter(t => {
@@ -316,14 +322,21 @@ function updateAuthUI() {
   const el = document.getElementById('turnoUrgCount');
   if (el) el.textContent = urgCount;
 
-  if (typeof LicenciasModule !== 'undefined') LicenciasModule.setEditMode(canEdit());
+  if (isFeatureEnabled('licencias') && typeof LicenciasModule !== 'undefined') {
+    LicenciasModule.setEditMode(canEdit());
+  }
   if (typeof PersonalModule !== 'undefined') PersonalModule.setEditMode(isAdminUser());
-  if (typeof LaboratoriosModule !== 'undefined') LaboratoriosModule.setEditMode(canEdit());
+  if (typeof LaboratoriosModule !== 'undefined') LaboratoriosModule.setEditMode(canEditLaboratorios());
   if (typeof AdminModule !== 'undefined') AdminModule.refresh();
   if (typeof DashboardModule !== 'undefined' && currentView === 'dashboard') DashboardModule.render();
 }
 
 function navigate(view) {
+  if (view === 'licencias' && !isFeatureEnabled('licencias')) {
+    if (typeof showToast === 'function') showToast('El módulo de licencias no está activo.', 'info');
+    view = 'patologias';
+  }
+
   if ((view === 'auditoria' || view === 'personal') && !isAdminUser()) {
     if (typeof showToast === 'function') showToast('Acceso restringido al administrador', 'error');
     return;
@@ -344,7 +357,9 @@ function navigate(view) {
   if (typeof MotionModule !== 'undefined') MotionModule.onViewChange(view);
 
   if (view === 'dashboard' && typeof DashboardModule !== 'undefined') DashboardModule.render();
-  if (view === 'licencias' && typeof LicenciasModule !== 'undefined') LicenciasModule.init();
+  if (view === 'licencias' && isFeatureEnabled('licencias') && typeof LicenciasModule !== 'undefined') {
+    LicenciasModule.init();
+  }
   if (view === 'laboratorios' && typeof LaboratoriosModule !== 'undefined') LaboratoriosModule.init();
   if (['patologias', 'trimestral'].includes(view) && typeof AdminModule !== 'undefined') AdminModule.show(view);
   if (view === 'turnos' && typeof TurnosModule !== 'undefined') TurnosModule.show();
@@ -359,49 +374,9 @@ function syncAdminSubnav(view) {
   });
 }
 
-function openLogin() {
-  document.getElementById('loginOverlay').classList.add('open');
-  document.getElementById('loginUser').focus();
-}
-
-function closeLogin() {
-  document.getElementById('loginOverlay').classList.remove('open');
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginPass').value = '';
-  document.getElementById('loginError').style.display = 'none';
-}
-
-function doLogin() {
-  const user = document.getElementById('loginUser').value.trim();
-  const pass = document.getElementById('loginPass').value;
-  if (user === 'admin' && pass === 'us3admin') {
-    isAuthenticated = true;
-    sessionStorage.setItem(AUTH_KEY, 'true');
-    sessionStorage.setItem(AUTH_USER_KEY, typeof formatAuditUser === 'function' ? formatAuditUser(user) : 'Administrador');
-    closeLogin();
-    updateAuthUI();
-    showToast('Sesión iniciada correctamente', 'success');
-  } else {
-    document.getElementById('loginError').style.display = 'block';
-    showToast('Credenciales incorrectas', 'error');
-  }
-}
-
 function doLogout() {
+  US3Auth.clearSession();
   isAuthenticated = false;
-  sessionStorage.removeItem(AUTH_KEY);
-  sessionStorage.removeItem(AUTH_USER_KEY);
-  updateAuthUI();
-  if (currentView === 'auditoria') navigate('dashboard');
-  showToast('Sesión cerrada', 'info');
-}
-
-function doPortalLogout() {
-  isAuthenticated = false;
-  sessionStorage.removeItem(AUTH_KEY);
-  sessionStorage.removeItem(AUTH_USER_KEY);
-  sessionStorage.removeItem(PORTAL_AUTH_KEY);
-  sessionStorage.removeItem(PORTAL_USER_KEY);
   window.location.href = 'index.html';
 }
 
@@ -451,10 +426,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     new ResizeObserver(updateSiteTopHeight).observe(top);
   }
 
-  if (sessionStorage.getItem(PORTAL_AUTH_KEY) === 'true' && !sessionStorage.getItem(PORTAL_USER_KEY)) {
-    sessionStorage.setItem(PORTAL_USER_KEY, PORTAL_USER);
+  if (sessionStorage.getItem(PORTAL_AUTH_KEY) === 'true' && !sessionStorage.getItem('us3_auth_role')) {
+    US3Auth.clearSession();
   }
 
+  applyFeatureFlags();
   updateThemeUI();
   document.getElementById('themeToggle')?.addEventListener('click', toggleTheme);
   document.querySelectorAll('[data-theme-btn]').forEach(btn => {
@@ -472,27 +448,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     btn.addEventListener('click', () => navigate(btn.dataset.view));
   });
 
-  const bindLogin = id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('click', openLogin);
-  };
-  bindLogin('btnLogin');
-  bindLogin('btnLoginAdmin');
-
   document.getElementById('btnLogout')?.addEventListener('click', doLogout);
-  document.getElementById('btnPortalLogout')?.addEventListener('click', doPortalLogout);
   document.getElementById('btnTurnoAdd')?.addEventListener('click', () => {
     if (typeof TurnosModule !== 'undefined') TurnosModule.openAdd();
   });
   document.getElementById('btnLabAdd')?.addEventListener('click', () => {
     if (typeof LaboratoriosModule !== 'undefined') LaboratoriosModule.openAdd();
-  });
-  document.getElementById('loginForm')?.addEventListener('submit', e => { e.preventDefault(); doLogin(); });
-  document.getElementById('loginOverlay')?.addEventListener('click', e => {
-    if (e.target === e.currentTarget) closeLogin();
-  });
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeLogin();
   });
 
   const sidebar = document.getElementById('sidebar');
@@ -512,6 +473,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   setInterval(updateWeather, 30 * 60 * 1000);
 
   const startView = new URLSearchParams(location.search).get('view');
+  const initialView = startView && VIEW_TITLES[startView] && (startView !== 'licencias' || isFeatureEnabled('licencias'))
+    ? startView
+    : 'patologias';
 
   if (typeof SupabaseClient !== 'undefined') {
     try {
@@ -529,5 +493,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  navigate(startView && VIEW_TITLES[startView] ? startView : 'dashboard');
+  if (typeof TurnosLabSync !== 'undefined') {
+    TurnosLabSync.syncAll({ persist: true, silent: true });
+  }
+
+  navigate(initialView);
 });
