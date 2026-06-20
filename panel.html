@@ -31,7 +31,7 @@
   <link rel="stylesheet" href="css/tabler-icons.min.css" />
   <link rel="stylesheet" href="css/design-system.css?v=warm1" />
   <link rel="stylesheet" href="css/inst-header.css" />
-  <link rel="stylesheet" href="css/app.css?v=turnos-ui3" />
+  <link rel="stylesheet" href="css/app.css?v=trim-ui4" />
   <link rel="stylesheet" href="css/motion.css" />
   <link rel="stylesheet" href="css/pwa.css" />
 </head>
@@ -191,14 +191,16 @@
           <button type="button" class="btn btn-primary edit-only" id="btnLabAdd"><i class="ti ti-plus"></i> Nuevo estudio</button>
         </div>
       </div>
-      <p class="dashboard-lead">Registro y seguimiento de estudios de laboratorio. Con sesión de administrador podés agregar y editar registros.</p>
-      <div class="filter-bar">
-        <div class="search-wrap"><i class="ti ti-search"></i><input type="text" id="labSearch" placeholder="Buscar interno o estudio…" /></div>
-        <select id="labFilterEstado"><option value="">Todos los estados</option><option value="pendiente">Pendiente</option><option value="en_proceso">En proceso</option><option value="informado">Informado</option></select>
+      <p class="dashboard-lead no-print">Registro y seguimiento de estudios de laboratorio. Los pendientes se generan automáticamente desde Turnos cuando corresponde.</p>
+      <div class="labs-toolbar no-print">
+        <div class="filter-bar labs-filter-bar">
+          <div class="search-wrap"><i class="ti ti-search"></i><input type="text" id="labSearch" placeholder="Buscar interno o estudio…" /></div>
+          <select id="labFilterEstado"><option value="">Todos los estados</option><option value="pendiente">Pendiente</option><option value="en_proceso">En proceso</option><option value="informado">Informado</option></select>
+        </div>
       </div>
-      <div class="table-card">
+      <div class="table-card labs-list-card">
         <div class="table-wrap">
-          <table>
+          <table class="labs-table">
             <thead>
               <tr>
                 <th>Interno</th><th>Estudio</th><th>Solicitud</th><th>Médico solicitante</th><th>Estado</th><th class="col-act edit-only hidden"></th>
@@ -232,7 +234,20 @@
           <button type="button" class="btn btn-secondary" onclick="ExportPrint.exportCsv('trimestral')"><i class="ti ti-download"></i> Exportar CSV</button>
         </div>
       </div>
-      <div class="quarter-selector" id="quarterSelector"></div>
+      <p class="dashboard-lead no-print">Estadísticas del trimestre activo. Cada tarjeta muestra el detalle mensual y el total consolidado al pie.</p>
+      <div class="trimestral-toolbar no-print">
+        <div class="trimestral-toolbar__head">
+          <div class="trimestral-toolbar__intro">
+            <i class="ti ti-calendar-stats" aria-hidden="true"></i>
+            <div>
+              <span class="trimestral-toolbar__eyebrow">Estás trabajando en</span>
+              <strong class="trimestral-active-title" id="trimestralActiveTitle">—</strong>
+            </div>
+          </div>
+          <p class="trimestral-active-months" id="trimestralActiveMonths"></p>
+        </div>
+        <div class="quarter-selector" id="quarterSelector"></div>
+      </div>
       <div class="trimestral-grid" id="trimestralGrid"></div>
       <div class="charts-row trimestral-compare" id="trimestralChart" style="margin-top:20px"></div>
     </section>
@@ -631,11 +646,11 @@
 <script src="js/licencias-dias.js"></script>
 <script src="js/licencias-default.js"></script>
 <script src="js/licencias.js"></script>
-<script src="js/laboratorios.js?v=lab3"></script>
+<script src="js/laboratorios.js?v=lab4"></script>
 <script src="js/turnos-model.js?v=turnos10"></script>
 <script src="js/turnos-lab-sync.js?v=labsync1"></script>
 <script src="js/turnos.js?v=turnos13"></script>
-<script src="js/administracion.js?v=trim11"></script>
+<script src="js/administracion.js?v=trim-ui2"></script>
 <script src="js/personal.js"></script>
 </body>
 </html>

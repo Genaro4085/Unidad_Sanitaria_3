@@ -65,19 +65,29 @@ const LaboratoriosModule = (() => {
       return;
     }
 
-    tbody.innerHTML = rows.map(row => `
-      <tr>
-        <td><strong>${escapeHtml(row.interno)}</strong></td>
-        <td>${escapeHtml(row.estudio)}</td>
-        <td><span class="date-text">${formatDate(row.solicitud)}</span></td>
-        <td>${escapeHtml(medico(row))}</td>
-        <td><span class="badge ${ESTADO_CLASS[row.estado] || ''}">${ESTADO_LABELS[row.estado] || row.estado}</span></td>
-        <td class="col-act">
-          <button type="button" class="edit-btn admin-edit-btn${editHidden}" onclick="LaboratoriosModule.openEdit(${row.id})" aria-label="Editar">
+    tbody.innerHTML = rows.map((row, i) => {
+      const estado = row.estado || 'pendiente';
+      const gap = i < rows.length - 1
+        ? '<tr class="lab-gap" aria-hidden="true"><td colspan="6"></td></tr>'
+        : '';
+      return `
+      <tr class="lab-row lab-row--${escapeHtml(estado)}">
+        <td data-label="Interno">
+          <div class="lab-patient">
+            <span class="lab-patient__name">${escapeHtml(row.interno)}</span>
+          </div>
+        </td>
+        <td data-label="Estudio"><span class="lab-estudio">${escapeHtml(row.estudio)}</span></td>
+        <td data-label="Solicitud"><span class="lab-fecha date-text">${formatDate(row.solicitud)}</span></td>
+        <td data-label="Médico"><span class="lab-medico">${escapeHtml(medico(row))}</span></td>
+        <td data-label="Estado"><span class="badge ${ESTADO_CLASS[estado] || ''}">${ESTADO_LABELS[estado] || estado}</span></td>
+        <td class="col-act" data-label="">
+          <button type="button" class="edit-btn lab-edit-btn admin-edit-btn${editHidden}" onclick="LaboratoriosModule.openEdit(${row.id})" aria-label="Editar">
             <i class="ti ti-edit"></i>
           </button>
         </td>
-      </tr>`).join('');
+      </tr>${gap}`;
+    }).join('');
 
     if (nodata) nodata.style.display = 'none';
   }

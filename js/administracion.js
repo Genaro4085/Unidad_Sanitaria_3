@@ -430,6 +430,14 @@ const AdminModule = (() => {
     return appData.trimestral[currentQuarter];
   }
 
+  function trimestralItemHead(f) {
+    return `
+      <div class="trimestral-item__head">
+        <span class="trimestral-item__icon" aria-hidden="true"><i class="ti ${f.icon}"></i></span>
+        <span class="trimestral-item__title">${escapeHtml(f.label)}</span>
+      </div>`;
+  }
+
   function trimestralItemHtml(f, quarterData, months, editable) {
     if (TrimestralModel.isScalarField(f.key)) {
       const val = TrimestralModel.normalizeScalar(quarterData[f.key]);
@@ -439,11 +447,13 @@ const AdminModule = (() => {
         : `<div class="trimestral-count">${val}</div>`;
       return `
       <div class="trimestral-item trimestral-item--scalar">
-        <label><i class="ti ${f.icon}"></i> ${escapeHtml(f.label)}</label>
-        <div class="trimestral-scalar-body">${input}</div>
-        <div class="trim-item-foot">
-          <span>Total</span>
-          <strong id="trim-total-${f.key}">${val}</strong>
+        ${trimestralItemHead(f)}
+        <div class="trimestral-item__body">
+          <div class="trimestral-scalar-body">${input}</div>
+          <div class="trim-item-foot">
+            <span>Total</span>
+            <strong id="trim-total-${f.key}">${val}</strong>
+          </div>
         </div>
       </div>`;
     }
@@ -462,23 +472,50 @@ const AdminModule = (() => {
 
     return `
     <div class="trimestral-item trimestral-item--months">
-      <label><i class="ti ${f.icon}"></i> ${escapeHtml(f.label)}</label>
-      <div class="trim-item-months">${monthInputs}</div>
-      <div class="trim-item-foot">
-        <span>Total</span>
-        <strong id="trim-total-${f.key}">${total}</strong>
+      ${trimestralItemHead(f)}
+      <div class="trimestral-item__body">
+        <div class="trim-item-months">${monthInputs}</div>
+        <div class="trim-item-foot">
+          <span>Total</span>
+          <strong id="trim-total-${f.key}">${total}</strong>
+        </div>
       </div>
     </div>`;
+  }
+
+  function quarterMonthRange(key) {
+    const months = TrimestralModel.monthLabels(key);
+    return `${months[0].slice(0, 3)} – ${months[2].slice(0, 3)}`;
   }
 
   function renderTrimestral() {
     ensureTrimestralQuarter();
 
+    const activeMeta = QUARTERS.find(q => q.key === currentQuarter);
+    const titleEl = document.getElementById('trimestralActiveTitle');
+    const monthsEl = document.getElementById('trimestralActiveMonths');
+    if (titleEl && activeMeta) titleEl.textContent = activeMeta.label;
+    if (monthsEl) {
+      monthsEl.textContent = TrimestralModel.monthLabels(currentQuarter).join(' · ');
+    }
+
     const selector = document.getElementById('quarterSelector');
-    selector.innerHTML = QUARTERS.map(q => `
-      <button class="quarter-btn${currentQuarter === q.key ? ' active' : ''}"
-        onclick="AdminModule.selectQuarter('${q.key}')">${q.label}</button>
-    `).join('');
+    selector.innerHTML = QUARTERS.map(q => {
+      const isActive = currentQuarter === q.key;
+      const year = q.key.split('-')[0];
+      const name = q.label.replace(/\s+\d{4}$/, '');
+      return `
+      <button type="button"
+        class="quarter-btn${isActive ? ' active' : ''}"
+        aria-current="${isActive ? 'step' : 'false'}"
+        aria-label="${q.label}"
+        onclick="AdminModule.selectQuarter('${q.key}')">
+        <span class="quarter-btn__badge">${q.short}</span>
+        <span class="quarter-btn__name">${name}</span>
+        <span class="quarter-btn__range">${quarterMonthRange(q.key)} · ${year}</span>
+        ${isActive ? '<i class="ti ti-circle-check-filled quarter-btn__active-icon" aria-hidden="true"></i>' : ''}
+      </button>`;
+    }).join('');
 
     const quarterData = appData.trimestral[currentQuarter];
     const months = TrimestralModel.monthLabels(currentQuarter);

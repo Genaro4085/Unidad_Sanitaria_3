@@ -1422,6 +1422,197 @@ tbody tr:hover td { background: var(--row-hover); }
 
 .quarter-selector { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
 
+#view-trimestral .trimestral-toolbar {
+  margin-bottom: 18px;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--warm-50) 0%, var(--warm-100) 100%);
+  border: 1px solid rgba(5, 150, 105, 0.18);
+  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.08);
+}
+
+.trimestral-toolbar__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.22) 0%, rgba(16, 185, 129, 0.1) 55%, rgba(5, 150, 105, 0.06) 100%);
+  border: 1px solid rgba(5, 150, 105, 0.32);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65), 0 2px 8px rgba(5, 150, 105, 0.12);
+}
+
+.trimestral-toolbar__intro {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.trimestral-toolbar__intro > .ti {
+  flex-shrink: 0;
+  font-size: 30px;
+  color: #059669;
+  filter: drop-shadow(0 2px 4px rgba(5, 150, 105, 0.25));
+}
+
+.trimestral-toolbar__eyebrow {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #047857;
+  margin-bottom: 3px;
+}
+
+.trimestral-active-title {
+  display: block;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #065F46;
+  line-height: 1.25;
+}
+
+.trimestral-active-months {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #047857;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(5, 150, 105, 0.3);
+  white-space: nowrap;
+}
+
+#view-trimestral .quarter-selector {
+  margin-bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  background: rgba(5, 150, 105, 0.07);
+  border: 1px solid rgba(5, 150, 105, 0.16);
+}
+
+#view-trimestral .quarter-btn {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 1px;
+  min-height: 0;
+  padding: 8px 10px 8px 8px;
+  border-radius: var(--radius-md);
+  border: 2px solid rgba(5, 150, 105, 0.14);
+  background: rgba(255, 255, 255, 0.72);
+  font-family: var(--font-action);
+  font-weight: 600;
+  color: var(--navy-800);
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease, color 0.2s ease;
+}
+
+#view-trimestral .quarter-btn__badge {
+  grid-row: 1 / 3;
+  grid-column: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: #047857;
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(5, 150, 105, 0.22);
+  transition: inherit;
+}
+
+#view-trimestral .quarter-btn__name {
+  grid-column: 2;
+  grid-row: 1;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: left;
+}
+
+#view-trimestral .quarter-btn__range {
+  grid-column: 2;
+  grid-row: 2;
+  font-size: 12px;
+  font-weight: 600;
+  color: #059669;
+  opacity: 0.9;
+  line-height: 1.2;
+  text-align: left;
+}
+
+#view-trimestral .quarter-btn__active-icon {
+  grid-row: 1 / 3;
+  grid-column: 3;
+  position: static;
+  align-self: center;
+  font-size: 17px;
+  color: #fff;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+#view-trimestral .quarter-btn:hover:not(.active) {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(5, 150, 105, 0.38);
+  color: #065F46;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.14);
+}
+
+#view-trimestral .quarter-btn:hover:not(.active) .quarter-btn__badge {
+  background: rgba(16, 185, 129, 0.22);
+  border-color: rgba(5, 150, 105, 0.35);
+}
+
+#view-trimestral .quarter-btn:active {
+  transform: scale(0.98);
+}
+
+#view-trimestral .quarter-btn:focus-visible {
+  outline: 3px solid rgba(16, 185, 129, 0.45);
+  outline-offset: 2px;
+}
+
+#view-trimestral .quarter-btn.active {
+  background: linear-gradient(145deg, #34D399 0%, #10B981 42%, #059669 100%);
+  color: #fff;
+  border-color: #047857;
+  box-shadow:
+    0 8px 22px rgba(5, 150, 105, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -2px 0 rgba(4, 120, 87, 0.35);
+  transform: translateY(-2px);
+}
+
+#view-trimestral .quarter-btn.active .quarter-btn__badge {
+  color: #065F46;
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+#view-trimestral .quarter-btn.active .quarter-btn__range {
+  color: rgba(255, 255, 255, 0.92);
+  opacity: 1;
+}
+
 .quarter-btn {
   padding: 8px 16px;
   border-radius: var(--radius-md);
@@ -1442,8 +1633,8 @@ tbody tr:hover td { background: var(--row-hover); }
 
 .trimestral-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(216px, 1fr));
-  gap: var(--space-md);
+  grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
+  gap: 18px;
   align-items: stretch;
 }
 
@@ -1451,11 +1642,58 @@ tbody tr:hover td { background: var(--row-hover); }
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: var(--space-md);
+  padding: 0;
   border-radius: var(--radius-lg);
-  background: var(--input-bg);
-  border: 1px solid rgba(2, 118, 188, 0.1);
-  box-shadow: var(--shadow-sm);
+  background: linear-gradient(180deg, var(--warm-50) 0%, var(--warm-100) 100%);
+  border: 1px solid rgba(30, 58, 138, 0.14);
+  box-shadow: 0 4px 16px rgba(30, 58, 138, 0.07);
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.trimestral-item:hover {
+  border-color: rgba(30, 58, 138, 0.22);
+  box-shadow: 0 6px 20px rgba(30, 58, 138, 0.1);
+  transform: translateY(-1px);
+}
+
+.trimestral-item__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px 12px;
+  background: rgba(30, 58, 138, 0.04);
+  border-bottom: 1px solid rgba(30, 58, 138, 0.08);
+}
+
+.trimestral-item__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  background: rgba(2, 118, 188, 0.1);
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.trimestral-item__icon .ti { font-size: 17px; }
+
+.trimestral-item__title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--navy-800);
+  line-height: 1.4;
+  min-height: 2.75em;
+  padding-top: 2px;
+}
+
+.trimestral-item__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 14px 16px 0;
 }
 
 .trimestral-item label {
@@ -1476,48 +1714,60 @@ tbody tr:hover td { background: var(--row-hover); }
   font-family: var(--font-metric);
   font-size: 1.8rem;
   text-align: center;
-  padding: 7px;
-  border: 1px solid rgba(2, 118, 188, 0.2);
+  padding: 10px 8px;
+  border: 1px solid rgba(30, 58, 138, 0.14);
   border-radius: var(--radius-md);
-  background: var(--input-bg);
+  background: var(--warm-50);
   color: var(--text-body);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.trimestral-item input:focus {
+  outline: none;
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .trimestral-count {
-  border: 1px solid transparent;
+  border: 1px solid rgba(30, 58, 138, 0.08);
+  background: var(--warm-50);
 }
 
 .trimestral-item input:disabled { opacity: 0.85; }
-
-.trimestral-item--months label { margin-bottom: 8px; }
 
 .trimestral-scalar-body {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 72px;
+  min-height: 76px;
 }
 
 .trim-item-months {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
+  gap: 8px;
   flex: 1;
   align-content: end;
-  min-height: 72px;
+  min-height: 76px;
 }
 
-.trim-item-cell { text-align: center; }
+.trim-item-cell {
+  text-align: center;
+  padding: 8px 6px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--warm-50);
+  border: 1px solid rgba(30, 58, 138, 0.08);
+}
 
 .trim-item-mname {
   display: block;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-muted);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
 }
 
 .trim-item-min,
@@ -1530,10 +1780,16 @@ tbody tr:hover td { background: var(--row-hover); }
 }
 
 .trim-item-min {
-  padding: 5px 4px;
-  border: 1px solid var(--border-color-strong);
+  padding: 6px 4px;
+  border: 1px solid rgba(30, 58, 138, 0.12);
   border-radius: var(--radius-sm);
-  background: var(--input-bg);
+  background: var(--warm-50);
+}
+
+.trim-item-val {
+  display: block;
+  padding: 6px 0;
+  font-weight: 600;
 }
 
 .trim-item-min:focus {
@@ -1562,20 +1818,139 @@ tbody tr:hover td { background: var(--row-hover); }
   justify-content: space-between;
   gap: 8px;
   margin-top: auto;
-  padding-top: 8px;
-  border-top: 1px solid var(--border-color);
+  margin-left: -16px;
+  margin-right: -16px;
+  padding: 11px 16px;
+  border-top: 1px solid rgba(30, 58, 138, 0.1);
+  background: rgba(30, 58, 138, 0.04);
   font-size: 11px;
+  font-weight: 600;
   color: var(--text-muted);
   flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .trim-item-foot strong {
   font-family: var(--font-metric);
-  font-size: 1.25rem;
-  color: var(--color-primary-light);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-primary);
   min-width: 2.5em;
   text-align: right;
   font-variant-numeric: tabular-nums;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+[data-theme="dark"] #view-trimestral .trimestral-toolbar {
+  background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+  border-color: rgba(52, 211, 153, 0.22);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="dark"] .trimestral-toolbar__head {
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.18) 0%, rgba(16, 185, 129, 0.08) 100%);
+  border-color: rgba(52, 211, 153, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] .trimestral-toolbar__intro > .ti {
+  color: #34D399;
+}
+
+[data-theme="dark"] .trimestral-toolbar__eyebrow {
+  color: #6EE7B7;
+}
+
+[data-theme="dark"] .trimestral-active-title {
+  color: #ECFDF5;
+}
+
+[data-theme="dark"] .trimestral-active-months {
+  color: #A7F3D0;
+  background: rgba(15, 23, 42, 0.55);
+  border-color: rgba(52, 211, 153, 0.3);
+}
+
+[data-theme="dark"] #view-trimestral .quarter-selector {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(52, 211, 153, 0.18);
+}
+
+[data-theme="dark"] #view-trimestral .quarter-btn {
+  background: rgba(15, 23, 42, 0.55);
+  border-color: rgba(52, 211, 153, 0.18);
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] #view-trimestral .quarter-btn__badge {
+  color: #6EE7B7;
+  background: rgba(16, 185, 129, 0.16);
+  border-color: rgba(52, 211, 153, 0.25);
+}
+
+[data-theme="dark"] #view-trimestral .quarter-btn__range {
+  color: #6EE7B7;
+}
+
+[data-theme="dark"] #view-trimestral .quarter-btn:hover:not(.active) {
+  background: rgba(16, 185, 129, 0.14);
+  border-color: rgba(52, 211, 153, 0.35);
+  color: #ECFDF5;
+}
+
+[data-theme="dark"] #view-trimestral .quarter-btn.active {
+  background: linear-gradient(145deg, #34D399 0%, #10B981 45%, #059669 100%);
+  border-color: #10B981;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
+}
+
+[data-theme="dark"] .trimestral-item {
+  background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+  border-color: rgba(28, 197, 226, 0.14);
+  box-shadow: none;
+}
+
+[data-theme="dark"] .trimestral-item:hover {
+  border-color: rgba(28, 197, 226, 0.24);
+  transform: none;
+}
+
+[data-theme="dark"] .trimestral-item__head,
+[data-theme="dark"] .trim-item-foot {
+  background: rgba(15, 23, 42, 0.35);
+  border-color: rgba(28, 197, 226, 0.1);
+}
+
+[data-theme="dark"] .trim-item-cell,
+[data-theme="dark"] .trimestral-item input,
+[data-theme="dark"] .trimestral-count {
+  background: #1e293b;
+  border-color: rgba(28, 197, 226, 0.12);
+}
+
+@media (max-width: 900px) {
+  #view-trimestral .quarter-selector {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .trimestral-toolbar__head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .trimestral-active-months {
+    white-space: normal;
+    width: 100%;
+    text-align: center;
+  }
+
+  #view-trimestral .quarter-btn__name {
+    font-size: 14px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -2073,6 +2448,286 @@ tbody tr:hover td { background: var(--row-hover); }
   .turno-phase__meta { width: 100%; justify-content: space-between; }
   .turno-step-row { grid-template-columns: 1fr; }
   .turno-steps-grid--img .turno-step-row { grid-template-columns: 1fr; }
+}
+
+/* ——— Laboratorios ——— */
+#view-laboratorios .dashboard-lead {
+  margin-bottom: 14px;
+}
+
+#view-laboratorios .labs-toolbar {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--warm-50) 0%, var(--warm-100) 100%);
+  border: 1px solid rgba(30, 58, 138, 0.12);
+  box-shadow: 0 2px 10px rgba(30, 58, 138, 0.05);
+}
+
+#view-laboratorios .labs-filter-bar {
+  margin-bottom: 0;
+  gap: 12px;
+}
+
+#view-laboratorios .labs-filter-bar select {
+  min-width: 180px;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+}
+
+#view-laboratorios .table-card,
+#view-laboratorios .labs-list-card {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  overflow: visible;
+}
+
+#view-laboratorios .table-wrap {
+  overflow: visible;
+}
+
+#view-laboratorios .labs-list-card .no-data {
+  margin-top: 8px;
+  padding: 56px 24px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--warm-50) 0%, var(--warm-100) 100%);
+  border: 1px dashed rgba(30, 58, 138, 0.18);
+}
+
+.labs-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.labs-table thead th {
+  padding: 12px 18px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: var(--input-bg);
+  border: 1px solid rgba(2, 118, 188, 0.1);
+}
+
+.labs-table thead th:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); }
+.labs-table thead th:last-child { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+
+.labs-table .col-act {
+  width: 52px;
+  text-align: center;
+}
+
+.labs-table tr.lab-row > td {
+  padding: 16px 18px;
+  border: 1px solid rgba(30, 58, 138, 0.15);
+  border-bottom: none;
+  background: linear-gradient(180deg, var(--warm-50) 0%, var(--warm-100) 100%);
+  vertical-align: middle;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.labs-table tr.lab-row > td + td { border-left: none; }
+
+.labs-table tr.lab-row > td:first-child {
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+}
+
+.labs-table tr.lab-row > td:last-child {
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+}
+
+.labs-table tr.lab-row > td {
+  border-bottom: 1px solid rgba(30, 58, 138, 0.15);
+  box-shadow: 0 4px 14px rgba(30, 58, 138, 0.07);
+}
+
+.labs-table tr.lab-row--pendiente > td:first-child {
+  box-shadow: inset 4px 0 0 #D97706, 0 4px 14px rgba(30, 58, 138, 0.07);
+}
+
+.labs-table tr.lab-row--en_proceso > td:first-child {
+  box-shadow: inset 4px 0 0 var(--color-primary-light, #2563EB), 0 4px 14px rgba(30, 58, 138, 0.07);
+}
+
+.labs-table tr.lab-row--informado > td:first-child {
+  box-shadow: inset 4px 0 0 #059669, 0 4px 14px rgba(30, 58, 138, 0.07);
+}
+
+.labs-table tr.lab-row:hover > td {
+  background: linear-gradient(180deg, var(--warm-50) 0%, var(--warm-200) 100%);
+  border-color: rgba(30, 58, 138, 0.2);
+}
+
+.labs-table tr.lab-gap > td {
+  height: 14px;
+  padding: 0;
+  line-height: 0;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  pointer-events: none;
+}
+
+.lab-patient {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.lab-patient__name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--navy-800);
+  line-height: 1.3;
+}
+
+.lab-estudio {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--navy-800);
+  line-height: 1.35;
+}
+
+.lab-fecha {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-body);
+  white-space: nowrap;
+}
+
+.lab-medico {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.labs-table .badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+.lab-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(2, 118, 188, 0.08);
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.lab-edit-btn:hover {
+  background: rgba(2, 118, 188, 0.16);
+  color: var(--blue-700);
+  transform: scale(1.04);
+}
+
+[data-theme="dark"] #view-laboratorios .labs-toolbar {
+  background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+  border-color: rgba(28, 197, 226, 0.16);
+}
+
+[data-theme="dark"] #view-laboratorios .labs-list-card .no-data {
+  background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+  border-color: rgba(28, 197, 226, 0.2);
+}
+
+[data-theme="dark"] .labs-table tr.lab-row > td {
+  background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+  border-color: rgba(28, 197, 226, 0.16);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .labs-table tr.lab-row--pendiente > td:first-child {
+  box-shadow: inset 4px 0 0 #F59E0B, 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .labs-table tr.lab-row--en_proceso > td:first-child {
+  box-shadow: inset 4px 0 0 var(--color-primary-light), 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .labs-table tr.lab-row--informado > td:first-child {
+  box-shadow: inset 4px 0 0 #34D399, 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .labs-table tr.lab-row:hover > td {
+  background: linear-gradient(180deg, #3d4f66 0%, #1e293b 100%);
+  border-color: rgba(28, 197, 226, 0.22);
+}
+
+[data-theme="dark"] .lab-patient__name,
+[data-theme="dark"] .lab-estudio {
+  color: #F1F5F9;
+}
+
+@media (max-width: 900px) {
+  #view-laboratorios .labs-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #view-laboratorios .labs-filter-bar select {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .labs-table thead { display: none; }
+
+  .labs-table tr.lab-row,
+  .labs-table tr.lab-row > td {
+    display: block;
+    width: 100%;
+  }
+
+  .labs-table tr.lab-row > td {
+    border-radius: 0 !important;
+    border-left: 1px solid rgba(30, 58, 138, 0.15) !important;
+    border-right: 1px solid rgba(30, 58, 138, 0.15) !important;
+    box-shadow: none !important;
+    padding: 12px 16px;
+  }
+
+  .labs-table tr.lab-row > td:first-child {
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+    box-shadow: inset 0 4px 0 0 var(--lab-accent, #D97706) !important;
+  }
+
+  .labs-table tr.lab-row--pendiente > td:first-child { --lab-accent: #D97706; }
+  .labs-table tr.lab-row--en_proceso > td:first-child { --lab-accent: var(--color-primary-light, #2563EB); }
+  .labs-table tr.lab-row--informado > td:first-child { --lab-accent: #059669; }
+
+  .labs-table tr.lab-row > td:last-child {
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg) !important;
+    border-bottom: 1px solid rgba(30, 58, 138, 0.15) !important;
+    text-align: right;
+  }
+
+  .labs-table tr.lab-row > td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  .labs-table tr.lab-row > td[data-label=""]::before {
+    display: none;
+  }
+
+  .labs-table tr.lab-gap > td { display: none; }
 }
 
 @media print {
