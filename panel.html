@@ -31,7 +31,7 @@
   <link rel="stylesheet" href="css/tabler-icons.min.css" />
   <link rel="stylesheet" href="css/design-system.css?v=warm1" />
   <link rel="stylesheet" href="css/inst-header.css" />
-  <link rel="stylesheet" href="css/app.css?v=trim10" />
+  <link rel="stylesheet" href="css/app.css?v=turnos-ui3" />
   <link rel="stylesheet" href="css/motion.css" />
   <link rel="stylesheet" href="css/pwa.css" />
 </head>
@@ -246,14 +246,14 @@
           <button type="button" class="btn btn-primary edit-only" id="btnTurnoAdd"><i class="ti ti-plus"></i> Nuevo turno</button>
         </div>
       </div>
-      <p class="dashboard-lead">Control de turnos quirúrgicos. Hacé clic en una fila para ver interconsultas, prequirúrgicos, imágenes y cirugía.</p>
+      <p class="dashboard-lead">Control de turnos quirúrgicos. Expandí cada tarjeta para ver el recorrido completo del paciente.</p>
       <div class="filter-bar">
         <div class="search-wrap"><i class="ti ti-search"></i><input type="text" id="turnoSearch" placeholder="Buscar interno o patología…" /></div>
         <span class="filter-stat">Urgentes: <strong id="turnoUrgCount">0</strong></span>
         <select id="turnoFilterUrg"><option value="">Toda urgencia</option><option value="alta">Urgente</option><option value="media">Moderada</option><option value="baja">Control</option></select>
         <select id="turnoFilterEst"><option value="">Todos los estados</option><option value="pendiente">Pendiente</option><option value="en_proceso">En trámite</option><option value="completado">Finalizado</option><option value="no_quiere">No desea</option></select>
       </div>
-      <div class="table-card">
+      <div class="table-card turnos-list-card">
         <div class="table-wrap">
           <table class="turnos-table">
             <thead>
@@ -634,7 +634,7 @@
 <script src="js/laboratorios.js?v=lab3"></script>
 <script src="js/turnos-model.js?v=turnos10"></script>
 <script src="js/turnos-lab-sync.js?v=labsync1"></script>
-<script src="js/turnos.js?v=turnos12"></script>
+<script src="js/turnos.js?v=turnos13"></script>
 <script src="js/administracion.js?v=trim11"></script>
 <script src="js/personal.js"></script>
 </body>

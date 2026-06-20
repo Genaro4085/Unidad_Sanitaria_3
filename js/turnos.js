@@ -137,12 +137,16 @@ const TurnosModule = (() => {
         <span class="turno-expand-icon"><i class="ti ti-chevron-${isOpen ? 'up' : 'down'}"></i></span>
       </td>
       <td>
-        <strong>${escapeHtml(turno.paciente)}</strong>
-        <br><span class="date-text">${escapeHtml(turno.patologia)}</span>
+        <div class="turno-patient">
+          <span class="turno-patient__name">${escapeHtml(turno.paciente)}</span>
+          <span class="turno-patient__path">${escapeHtml(turno.patologia)}</span>
+        </div>
       </td>
       <td>
-        <span class="turno-etapa">${escapeHtml(r.etapa)}</span>
-        ${r.etapaDetalle ? `<br><span class="turno-etapa-detail">${escapeHtml(r.etapaDetalle)}</span>` : ''}
+        <div class="turno-stage">
+          <span class="turno-etapa">${escapeHtml(r.etapa)}</span>
+          ${r.etapaDetalle ? `<span class="turno-etapa-detail">${escapeHtml(r.etapaDetalle)}</span>` : ''}
+        </div>
       </td>
       <td>${badgeHtml(URG_BADGE, turno.urgencia)}</td>
       <td>${badgeHtml(GEN_BADGE, r.estadoGeneral)}</td>
