@@ -954,7 +954,24 @@ button { cursor: pointer; border: none; font-size: 13px; transition: var(--trans
   margin: 0;
   padding: 0;
   flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(30, 58, 138, 0.22) transparent;
+}
+
+.pathology-track__list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.pathology-track__list::-webkit-scrollbar-thumb {
+  background: rgba(30, 58, 138, 0.22);
+  border-radius: 4px;
+}
+
+.pathology-track__list::-webkit-scrollbar-thumb:hover {
+  background: rgba(30, 58, 138, 0.35);
 }
 
 .pathology-track__item {
@@ -962,11 +979,13 @@ button { cursor: pointer; border: none; font-size: 13px; transition: var(--trans
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 9px 0;
+  padding: 9px 6px;
+  margin: 0;
   border-bottom: 1px solid rgba(30, 58, 138, 0.08);
   font-size: 14px;
   line-height: 1.4;
   color: var(--text-body);
+  border-radius: var(--radius-sm);
 }
 
 .pathology-track__item:last-child {
@@ -1071,6 +1090,18 @@ button { cursor: pointer; border: none; font-size: 13px; transition: var(--trans
 [data-theme="dark"] .pathology-track__empty {
   background: rgba(15, 23, 42, 0.35);
   border-color: rgba(148, 163, 184, 0.2);
+}
+
+[data-theme="dark"] .pathology-track__list {
+  scrollbar-color: rgba(148, 163, 184, 0.28) transparent;
+}
+
+[data-theme="dark"] .pathology-track__list::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.28);
+}
+
+[data-theme="dark"] .pathology-track__list::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.42);
 }
 
 .pathology-grid {

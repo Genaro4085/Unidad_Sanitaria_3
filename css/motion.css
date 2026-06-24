@@ -225,10 +225,10 @@
 
 .pathology-track__item:hover {
   background: rgba(219, 234, 254, 0.25);
-  margin: 0 -6px;
-  padding-left: 6px;
-  padding-right: 6px;
-  border-radius: var(--radius-sm);
+}
+
+[data-theme="dark"] .pathology-track__item:hover {
+  background: rgba(30, 58, 138, 0.22);
 }
 
 /* ── Tablas: sin animación por fila (mejor rendimiento) ── */

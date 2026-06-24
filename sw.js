@@ -7,7 +7,7 @@ const RUNTIME_CACHE = `us3-runtime-${BUILD_ID}`;
 
 const PRECACHE_URLS = [
   '/offline.html',
-  '/favicon.svg',
+  '/favicon-32.png',
   '/css/tabler-icons.min.css',
   '/css/fonts/tabler-icons.woff2',
   '/icons/icon-192.png',
