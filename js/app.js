@@ -133,6 +133,17 @@ function reloadAppDataFromStorage() {
   }
 }
 
+function refreshAllViewsFromData(opts = {}) {
+  if (!opts.skipReload) reloadAppDataFromStorage();
+  updateAuthUI();
+  if (typeof AdminModule !== 'undefined') AdminModule.refresh();
+  if (typeof TurnosModule !== 'undefined' && currentView === 'turnos') TurnosModule.refresh();
+  if (typeof LaboratoriosModule !== 'undefined' && currentView === 'laboratorios') LaboratoriosModule.refresh();
+  if (typeof DashboardModule !== 'undefined' && currentView === 'dashboard') DashboardModule.render();
+  if (typeof PersonalModule !== 'undefined' && currentView === 'personal') PersonalModule.init();
+  if (typeof AuditModule !== 'undefined' && currentView === 'auditoria') AuditModule.init();
+}
+
 function canEdit() {
   return US3Auth.canEditAdminModules();
 }
@@ -486,7 +497,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (status.ok && typeof PlatformSync !== 'undefined') {
         await PlatformSync.bootstrapFromSupabase();
-        reloadAppDataFromStorage();
       }
     } catch (err) {
       console.warn('[US3 Supabase]', err.message || err);

@@ -26,3 +26,6 @@ DROP POLICY IF EXISTS platform_state_write ON us3_platform_state;
 CREATE POLICY platform_state_write ON us3_platform_state
   FOR ALL TO authenticated
   USING (public.us3_es_admin()) WITH CHECK (public.us3_es_admin());
+
+-- Sync en vivo entre dispositivos (Realtime). Ejecutar una sola vez si no está habilitado:
+-- ALTER PUBLICATION supabase_realtime ADD TABLE us3_platform_state;

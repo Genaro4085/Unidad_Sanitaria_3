@@ -5,7 +5,7 @@
   .view.active,
   .view--entering,
   .modal-overlay.open .modal,
-  .pathology-fold[open] .pathology-fold__body,
+  .pathology-track__body,
   .toast,
   .nav-item--pulse {
     animation: none !important;
@@ -192,7 +192,7 @@
 }
 
 .pathology-card:hover .path-icon {
-  transform: scale(1.08);
+  transform: scale(1.06);
 }
 
 .pathology-count,
@@ -207,37 +207,28 @@
 }
 
 /* ── Patologías prioritarias ── */
-.pathology-fold {
-  transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.2s ease;
+.pathology-track {
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
-.pathology-fold:hover {
-  box-shadow: var(--shadow-sm);
-}
-
-.pathology-fold[open] {
+.pathology-track:hover {
   box-shadow: var(--shadow-md);
 }
 
-.pathology-fold[open] .pathology-fold__body {
-  animation: us3-fold-reveal 0.28s ease both;
+.pathology-track__body {
+  transition: max-height 0.28s ease, opacity 0.22s ease;
 }
 
-.pathology-fold__count {
-  transition: transform 0.25s ease;
+.pathology-track__item {
+  transition: background 0.15s ease;
 }
 
-.pathology-fold[open] .pathology-fold__count {
-  transform: scale(1.06);
-}
-
-.pathology-fold__list li {
-  transition: padding-left 0.2s ease, color 0.2s ease;
-}
-
-.pathology-fold__list li:hover {
-  padding-left: 4px;
-  color: var(--blue-900);
+.pathology-track__item:hover {
+  background: rgba(219, 234, 254, 0.25);
+  margin: 0 -6px;
+  padding-left: 6px;
+  padding-right: 6px;
+  border-radius: var(--radius-sm);
 }
 
 /* ── Tablas: sin animación por fila (mejor rendimiento) ── */

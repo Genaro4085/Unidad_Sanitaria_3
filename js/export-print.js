@@ -234,6 +234,7 @@ const ExportPrint = (() => {
 
     let personalPrepared = false;
     let trimestralPrepared = null;
+    let patologiasPrepared = null;
     if (v === 'personal' && typeof PersonalModule !== 'undefined' && PersonalModule.preparePrint) {
       personalPrepared = PersonalModule.preparePrint();
       if (!personalPrepared && typeof showToast === 'function') {
@@ -243,6 +244,9 @@ const ExportPrint = (() => {
     }
     if (v === 'trimestral' && typeof AdminModule !== 'undefined' && AdminModule.prepareTrimestralPrint) {
       trimestralPrepared = AdminModule.prepareTrimestralPrint();
+    }
+    if (v === 'patologias' && typeof AdminModule !== 'undefined' && AdminModule.preparePatologiasPrint) {
+      patologiasPrepared = AdminModule.preparePatologiasPrint();
     }
 
     const titleEl = el.querySelector('.view-title');
@@ -259,6 +263,9 @@ const ExportPrint = (() => {
       }
       if (trimestralPrepared && typeof AdminModule !== 'undefined' && AdminModule.restoreTrimestralPrint) {
         AdminModule.restoreTrimestralPrint(trimestralPrepared);
+      }
+      if (patologiasPrepared && typeof AdminModule !== 'undefined' && AdminModule.restorePatologiasPrint) {
+        AdminModule.restorePatologiasPrint(patologiasPrepared);
       }
       document.body.classList.remove('is-printing');
       delete document.body.dataset.printView;

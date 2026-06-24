@@ -76,11 +76,14 @@ const AdminModule = (() => {
 
 
 
-  function renderPriorityGrupos() {
+  function renderPriorityGrupos(openKey) {
 
     const el = document.getElementById('pathologyPriority');
 
     if (!el) return;
+
+    const anyOpen = el.querySelectorAll('.pathology-track[open]').length > 0;
+    const openAll = anyOpen || !!openKey;
 
 
 
@@ -96,29 +99,29 @@ const AdminModule = (() => {
 
       const list = internos.length
 
-        ? `<ul class="pathology-fold__list">${internos.map((n, i) => `
+        ? `<ul class="pathology-track__list">${internos.map((n, i) => `
 
-          <li>
+          <li class="pathology-track__item">
 
-            <span class="pathology-fold__name">${escapeHtml(n)}</span>
+            <span class="pathology-track__name">${escapeHtml(n)}</span>
 
-            ${editable ? `<button type="button" class="pathology-fold__remove" onclick="AdminModule.removeInternoGrupo('${key}', ${i})" aria-label="Quitar ${escapeHtml(n)}"><i class="ti ti-x"></i></button>` : ''}
+            ${editable ? `<button type="button" class="pathology-track__remove no-print" onclick="AdminModule.removeInternoGrupo('${key}', ${i})" aria-label="Quitar ${escapeHtml(n)}"><i class="ti ti-x"></i></button>` : ''}
 
           </li>`).join('')}</ul>`
 
-        : '<p class="pathology-fold__empty">Sin internos registrados.</p>';
+        : '<p class="pathology-track__empty">Sin internos registrados</p>';
 
 
 
       const addBlock = editable ? `
 
-        <div class="pathology-fold__add no-print">
+        <div class="pathology-track__add no-print">
 
-          <input type="text" id="grupo-interno-${key}" placeholder="Apellido y nombre o N° interno" maxlength="120"
+          <input type="text" id="grupo-interno-${key}" class="pathology-track__input" placeholder="Apellido y nombre o N° interno" maxlength="120"
 
             onkeydown="if(event.key==='Enter'){event.preventDefault();AdminModule.addInternoGrupo('${key}');}" />
 
-          <button type="button" class="btn btn-secondary pathology-fold__add-btn" onclick="AdminModule.addInternoGrupo('${key}')">
+          <button type="button" class="btn btn-secondary pathology-track__add-btn" onclick="AdminModule.addInternoGrupo('${key}')">
 
             <i class="ti ti-plus"></i> Agregar
 
@@ -128,25 +131,29 @@ const AdminModule = (() => {
 
 
 
+      const isOpen = openAll;
+
       return `
 
-      <details class="pathology-fold${critical ? ' pathology-fold--critical' : ''}">
+      <details class="pathology-track${critical ? ' pathology-track--critical' : ''}" data-grupo="${key}"${isOpen ? ' open' : ''}>
 
-        <summary class="pathology-fold__head">
+        <summary class="pathology-track__head">
 
-          <span class="pathology-fold__title">${escapeHtml(grupo.label || key)}</span>
+          <span class="pathology-track__chevron" aria-hidden="true"><i class="ti ti-chevron-right"></i></span>
 
-          <span class="pathology-fold__count" id="grupo-count-${key}">${count}</span>
+          <h3 class="pathology-track__title">${escapeHtml(grupo.label || key)}</h3>
+
+          <span class="pathology-track__count" id="grupo-count-${key}">${count}</span>
 
         </summary>
 
-        <div class="pathology-fold__body">${list}${addBlock}</div>
+        <div class="pathology-track__body">${list}${addBlock}</div>
 
       </details>`;
 
     }).join('');
 
-    bindPriorityGrupoSync();
+    initPriorityBoard();
   }
 
 
@@ -225,9 +232,12 @@ const AdminModule = (() => {
 
     }
 
-    renderPriorityGrupos();
+    renderPriorityGrupos(key);
 
-    document.querySelectorAll('.pathology-fold').forEach(f => { f.open = true; });
+    requestAnimationFrame(() => {
+      const input = document.getElementById('grupo-interno-' + key);
+      input?.focus();
+    });
 
     if (typeof DashboardModule !== 'undefined') DashboardModule.render();
 
@@ -273,28 +283,38 @@ const AdminModule = (() => {
 
     renderPriorityGrupos();
 
-    document.querySelectorAll('.pathology-fold').forEach(f => { f.open = true; });
-
     if (typeof DashboardModule !== 'undefined') DashboardModule.render();
 
   }
 
 
 
-  function bindPriorityGrupoSync() {
-    const container = document.getElementById('pathologyPriority');
-    if (!container) return;
-    const folds = container.querySelectorAll('.pathology-fold');
+  function flashPathologyEl(el) {
+    if (!el) return;
+    el.classList.remove('pathology-flash');
+    void el.offsetWidth;
+    el.classList.add('pathology-flash');
+    el.addEventListener('animationend', () => el.classList.remove('pathology-flash'), { once: true });
+  }
+
+  function initPriorityBoard() {
+    const board = document.getElementById('pathologyPriority');
+    if (!board || board.dataset.priorityBound) return;
+    board.dataset.priorityBound = '1';
+
     let syncing = false;
-    folds.forEach(fold => {
-      fold.addEventListener('toggle', () => {
-        if (syncing) return;
-        syncing = true;
-        const isOpen = fold.open;
-        folds.forEach(f => { f.open = isOpen; });
-        syncing = false;
+
+    board.addEventListener('toggle', (e) => {
+      const track = e.target;
+      if (!track.classList?.contains('pathology-track') || syncing) return;
+
+      syncing = true;
+      const next = track.open;
+      board.querySelectorAll('.pathology-track').forEach((t) => {
+        t.open = next;
       });
-    });
+      syncing = false;
+    }, true);
   }
 
 
@@ -333,6 +353,7 @@ const AdminModule = (() => {
       });
     }
     renderPoblacion();
+    flashPathologyEl(document.querySelector('.pathology-poblacion__value, .pathology-poblacion__input'));
     if (typeof showToast === 'function') showToast('Población actualizada', 'success');
   }
 
@@ -398,6 +419,7 @@ const AdminModule = (() => {
     saveData();
 
     document.getElementById('count-' + key).textContent = newVal;
+    flashPathologyEl(document.getElementById('count-' + key));
 
     const label = (typeof AUDIT_PAT_LABELS !== 'undefined' && AUDIT_PAT_LABELS[key]) || key;
 
@@ -551,6 +573,78 @@ const AdminModule = (() => {
     });
   }
 
+  function buildPatologiasPrintSheet() {
+    const mount = document.getElementById('pathologyPrintMount');
+    if (!mount) return;
+
+    const poblacion = appData.poblacion ?? 974;
+    const when = new Date().toLocaleString('es-AR');
+
+    const priorityHtml = PRIORITY_GRUPOS.map(({ key, critical }) => {
+      const grupo = getGrupo(key);
+      const internos = Array.isArray(grupo.internos) ? grupo.internos : [];
+      const list = internos.length
+        ? `<ul class="path-print-list">${internos.map(n => `<li>${escapeHtml(n)}</li>`).join('')}</ul>`
+        : '<p class="path-print-empty">Sin internos registrados</p>';
+      return `
+        <div class="path-print-priority-col${critical ? ' path-print-priority-col--critical' : ''}">
+          <h3 class="path-print-priority-col__title">${escapeHtml(grupo.label || key)}</h3>
+          <p class="path-print-priority-col__count">${internos.length} interno${internos.length === 1 ? '' : 's'}</p>
+          ${list}
+        </div>`;
+    }).join('');
+
+    const gridHtml = PATOLOGIAS.map(p => {
+      const val = appData.patologias[p.key] ?? 0;
+      return `
+        <div class="path-print-card${p.key.startsWith('tbc') ? ' path-print-card--tbc' : ''}">
+          <span class="path-print-card__label">${escapeHtml(p.label)}</span>
+          <strong class="path-print-card__value">${val}</strong>
+        </div>`;
+    }).join('');
+
+    mount.innerHTML = `
+      <article class="pathology-print-sheet" aria-label="Registro de patologías">
+        <header class="path-print-header">
+          <div class="path-print-header__brand">Unidad Sanitaria N°3</div>
+          <div class="path-print-header__sub">Dirección Provincial de Salud Penitenciaria</div>
+          <div class="path-print-header__meta">Patologías · Impreso ${when}</div>
+          <div class="path-print-poblacion">Población total: <strong>${poblacion}</strong> internos</div>
+        </header>
+        <section class="path-print-section">
+          <h2 class="path-print-section__title">Seguimiento prioritario</h2>
+          <div class="path-print-priority">${priorityHtml}</div>
+        </section>
+        <section class="path-print-section path-print-section--grid">
+          <h2 class="path-print-section__title">Registro por patología</h2>
+          <div class="path-print-grid">${gridHtml}</div>
+        </section>
+      </article>`;
+    mount.hidden = false;
+    mount.setAttribute('aria-hidden', 'false');
+  }
+
+  function preparePatologiasPrint() {
+    buildPatologiasPrintSheet();
+    const pageStyle = document.createElement('style');
+    pageStyle.id = 'patologias-print-page';
+    pageStyle.textContent = '@page { size: A4 portrait; margin: 10mm; }';
+    document.head.appendChild(pageStyle);
+    document.body.classList.add('is-printing-patologias');
+    return { pageStyle };
+  }
+
+  function restorePatologiasPrint(state) {
+    document.body.classList.remove('is-printing-patologias');
+    if (state?.pageStyle?.parentNode) state.pageStyle.parentNode.removeChild(state.pageStyle);
+    const mount = document.getElementById('pathologyPrintMount');
+    if (mount) {
+      mount.innerHTML = '';
+      mount.hidden = true;
+      mount.setAttribute('aria-hidden', 'true');
+    }
+  }
+
   function renderTrimestralCompare() {
     const chartEl = document.getElementById('trimestralChart');
     if (!chartEl) return;
@@ -700,6 +794,8 @@ const AdminModule = (() => {
     renderPatologias, updatePatologia, updatePoblacion, addInternoGrupo, removeInternoGrupo, renderTrimestral, selectQuarter,
 
     updateTrimestralMonth, updateTrimestralScalar, prepareTrimestralPrint, restoreTrimestralPrint,
+
+    preparePatologiasPrint, restorePatologiasPrint,
 
     renderTurnos: () => typeof TurnosModule !== 'undefined' && TurnosModule.render(),
 

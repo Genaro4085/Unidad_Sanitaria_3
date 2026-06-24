@@ -31,7 +31,7 @@
   <link rel="stylesheet" href="css/tabler-icons.min.css" />
   <link rel="stylesheet" href="css/design-system.css?v=warm1" />
   <link rel="stylesheet" href="css/inst-header.css" />
-  <link rel="stylesheet" href="css/app.css?v=trim-ui4" />
+  <link rel="stylesheet" href="css/app.css?v=lead-type1" />
   <link rel="stylesheet" href="css/motion.css" />
   <link rel="stylesheet" href="css/pwa.css" />
 </head>
@@ -221,9 +221,17 @@
           <button type="button" class="btn btn-secondary" onclick="ExportPrint.exportCsv('patologias')"><i class="ti ti-download"></i> Exportar CSV</button>
         </div>
       </div>
-      <div class="pathology-poblacion-wrap" id="pathologyPoblacion"></div>
-      <div class="pathology-priority" id="pathologyPriority"></div>
-      <div class="pathology-grid" id="pathologyGrid"></div>
+      <div id="pathologyPrintMount" class="pathology-print-mount" hidden aria-hidden="true"></div>
+      <p class="dashboard-lead no-print">Registro de patologías y seguimiento de casos prioritarios.</p>
+      <div class="pathology-context no-print" id="pathologyPoblacion"></div>
+      <section class="pathology-zone" id="pathologyPriorityZone" aria-labelledby="pathologyPriorityLabel">
+        <h2 class="pathology-zone__title no-print" id="pathologyPriorityLabel">Seguimiento prioritario</h2>
+        <div class="pathology-priority" id="pathologyPriority" role="region" aria-label="Internos en seguimiento prioritario"></div>
+      </section>
+      <section class="pathology-zone pathology-zone--grid" aria-labelledby="pathologyGridLabel">
+        <h2 class="pathology-zone__title no-print" id="pathologyGridLabel">Registro por patología</h2>
+        <div class="pathology-grid" id="pathologyGrid"></div>
+      </section>
     </section>
 
     <section class="view" id="view-trimestral">
@@ -627,20 +635,20 @@
   </div>
 </div>
 
-<script src="js/pwa.js"></script>
+<script src="js/pwa.js?v=sync1"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/load-config.js"></script>
 <script src="js/supabase-client.js"></script>
 <script src="js/data-service.js?v=turnos9"></script>
-<script src="js/platform-sync.js"></script>
+<script src="js/platform-sync.js?v=sync1"></script>
 <script src="js/audit.js"></script>
-<script src="js/export-print.js?v=trim3"></script>
+<script src="js/export-print.js?v=path-print1"></script>
 <script src="js/motion.js"></script>
 <script src="js/features.js?v=feat1"></script>
 <script src="js/auth.js?v=auth3"></script>
 <script src="js/trimestral-model.js?v=trim4"></script>
-<script src="js/app.js?v=feat4"></script>
+<script src="js/app.js?v=sync1"></script>
 <script src="js/dashboard.js?v=trim2"></script>
 <!-- Módulo Licencias: oculto en menú (US3Features.licencias = false). Scripts intactos para reactivar. -->
 <script src="js/licencias-dias.js"></script>
@@ -650,7 +658,7 @@
 <script src="js/turnos-model.js?v=turnos10"></script>
 <script src="js/turnos-lab-sync.js?v=labsync1"></script>
 <script src="js/turnos.js?v=turnos13"></script>
-<script src="js/administracion.js?v=trim-ui2"></script>
+<script src="js/administracion.js?v=path-ui8"></script>
 <script src="js/personal.js"></script>
 </body>
 </html>

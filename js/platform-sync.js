@@ -1,4 +1,4 @@
-/* Persistencia 100% Supabase — localStorage solo caché offline */
+/* Persistencia Supabase — caché local + sync en vivo entre dispositivos/pestañas */
 const PlatformSync = (() => {
   const PLATFORM_KEY = 'us3_platform_data_v2';
   const LICENCIAS_KEY = 'us3_licencias_v3';
@@ -7,11 +7,21 @@ const PlatformSync = (() => {
   const MEDICO_KEY = 'us3_personal_medico';
   const EDITORS_KEY = 'us3_patologias_editors';
   const META_KEY = 'us3_sync_meta';
-  const PUSH_DEBOUNCE_MS = 800;
+  const PUSH_DEBOUNCE_MS = 400;
+  const POLL_INTERVAL_MS = 12000;
 
   let pushTimer = null;
   let pushing = false;
+  let pushAgain = false;
   let supabaseReady = false;
+  let pendingOfflinePush = false;
+  let liveSyncStarted = false;
+  let pollTimer = null;
+  let realtimeChannel = null;
+  let pullingRemote = false;
+  let lastLocalEditAt = 0;
+  let lastPushedAt = 0;
+  let deferRemoteUntil = 0;
 
   function getMeta() {
     try { return JSON.parse(localStorage.getItem(META_KEY) || '{}') || {}; }
@@ -60,13 +70,93 @@ const PlatformSync = (() => {
     return supabaseReady;
   }
 
+  function hasPendingPush() {
+    return !!pushTimer || pushing || pendingOfflinePush;
+  }
+
+  function isUserEditing() {
+    const el = document.activeElement;
+    if (!el) return false;
+    const tag = el.tagName;
+    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
+  }
+
+  function tsValue(value) {
+    const n = Date.parse(value || '');
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function applyRemotePayload(payload, updatedAt, source) {
+    if (!payload) return false;
+    cacheLocally(payload);
+    if (typeof refreshAllViewsFromData === 'function') {
+      refreshAllViewsFromData({ source });
+    } else if (typeof reloadAppDataFromStorage === 'function') {
+      reloadAppDataFromStorage();
+    }
+    if (payload.audit && typeof replaceAuditLog === 'function') {
+      replaceAuditLog(payload.audit);
+    }
+    const ts = updatedAt || new Date().toISOString();
+    setMeta({ updatedAt: ts, source: 'supabase' });
+    updateSyncIndicator('synced', ts);
+    return true;
+  }
+
+  async function pullRemoteIfNewer(reason) {
+    if (typeof DataService === 'undefined' || pullingRemote) return false;
+    if (!(await DataService.isOnline())) return false;
+
+    pullingRemote = true;
+    try {
+      const remote = await DataService.loadPlatformState();
+      const remoteTs = remote?.updated_at;
+      const knownTs = getMeta().updatedAt;
+      if (!remote?.payload || tsValue(remoteTs) <= tsValue(knownTs)) return false;
+
+      if (isUserEditing()) {
+        deferRemoteUntil = Date.now() + 5000;
+        if (typeof showToast === 'function') {
+          showToast('Hay cambios en otro dispositivo. Se actualizará al terminar de editar.', 'info', 4500);
+        }
+        return false;
+      }
+
+      const hasLocalEdits = hasPendingPush() || tsValue(lastLocalEditAt) > tsValue(knownTs);
+      if (hasLocalEdits) {
+        await flushPending();
+        return false;
+      }
+
+      const applied = applyRemotePayload(remote.payload, remoteTs, reason || 'remote');
+      if (applied && reason !== 'bootstrap' && typeof showToast === 'function') {
+        showToast('Datos actualizados desde otro dispositivo', 'info', 3200);
+      }
+      return applied;
+    } catch (err) {
+      console.warn('[US3 Supabase] pull:', err.message || err);
+      return false;
+    } finally {
+      pullingRemote = false;
+    }
+  }
+
   async function pushNow() {
     if (typeof DataService === 'undefined') return false;
     if (!(await DataService.isOnline())) {
+      pendingOfflinePush = true;
       updateSyncIndicator('offline');
       return false;
     }
-    if (pushing) return false;
+    if (pushing) {
+      pushAgain = true;
+      return false;
+    }
+
+    if (pushTimer) {
+      clearTimeout(pushTimer);
+      pushTimer = null;
+    }
 
     pushing = true;
     try {
@@ -74,11 +164,14 @@ const PlatformSync = (() => {
       cacheLocally(payload);
       const saved = await DataService.saveFullPlatform(payload);
       const ts = saved?.updated_at || new Date().toISOString();
+      lastPushedAt = Date.now();
+      pendingOfflinePush = false;
       setMeta({ updatedAt: ts, source: 'supabase' });
       updateSyncIndicator('synced', ts);
       return true;
     } catch (err) {
       console.warn('[US3 Supabase]', err.message || err);
+      pendingOfflinePush = true;
       updateSyncIndicator('error');
       if (typeof showToast === 'function') {
         showToast('No se pudo guardar en Supabase: ' + (err.message || err), 'error', 7000);
@@ -86,23 +179,129 @@ const PlatformSync = (() => {
       return false;
     } finally {
       pushing = false;
+      if (pushAgain) {
+        pushAgain = false;
+        setTimeout(() => { pushNow(); }, 0);
+      }
     }
   }
 
   function schedulePush() {
-    if (!supabaseReady) return;
+    lastLocalEditAt = Date.now();
+    if (!supabaseReady) {
+      pendingOfflinePush = true;
+      updateSyncIndicator('offline');
+      return;
+    }
     if (pushTimer) clearTimeout(pushTimer);
-    pushTimer = setTimeout(() => { pushNow(); }, PUSH_DEBOUNCE_MS);
+    pushTimer = setTimeout(() => {
+      pushTimer = null;
+      pushNow();
+    }, PUSH_DEBOUNCE_MS);
     updateSyncIndicator('pending');
+  }
+
+  async function flushPending() {
+    if (pushTimer) {
+      clearTimeout(pushTimer);
+      pushTimer = null;
+    }
+    if (!hasPendingPush() && !pendingOfflinePush) return true;
+    return pushNow();
   }
 
   function persist(appDataSnapshot) {
     if (appDataSnapshot) writeJson(PLATFORM_KEY, appDataSnapshot);
     if (!supabaseReady) {
+      pendingOfflinePush = true;
       updateSyncIndicator('offline');
       return;
     }
     schedulePush();
+  }
+
+  function startPolling() {
+    if (pollTimer) return;
+    pollTimer = setInterval(() => {
+      if (!supabaseReady || pushing) return;
+      if (Date.now() < deferRemoteUntil) return;
+      pullRemoteIfNewer('poll');
+    }, POLL_INTERVAL_MS);
+  }
+
+  function startRealtime() {
+    if (realtimeChannel || typeof SupabaseClient === 'undefined') return;
+    const sb = SupabaseClient.get();
+    if (!sb?.channel) return;
+
+    realtimeChannel = sb
+      .channel('us3-platform-state')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'us3_platform_state', filter: 'id=eq.us3' },
+        (event) => {
+          const remoteTs = event?.new?.updated_at;
+          if (!remoteTs) return;
+          if (Date.now() - lastPushedAt < 1500 && tsValue(remoteTs) <= tsValue(getMeta().updatedAt) + 1000) {
+            return;
+          }
+          if (pushing) return;
+          pullRemoteIfNewer('realtime');
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.info('[US3 Supabase] Sync en vivo activa');
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('[US3 Supabase] Realtime no disponible — usando sondeo cada', POLL_INTERVAL_MS / 1000, 's');
+        }
+      });
+  }
+
+  function startLiveSync() {
+    if (liveSyncStarted || !supabaseReady) return;
+    liveSyncStarted = true;
+    startRealtime();
+    startPolling();
+    bindLifecycleFlush();
+  }
+
+  function bindLifecycleFlush() {
+    if (bindLifecycleFlush.bound) return;
+    bindLifecycleFlush.bound = true;
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') flushPending();
+      else if (supabaseReady) pullRemoteIfNewer('visible');
+    });
+
+    window.addEventListener('pagehide', () => { flushPending(); });
+    window.addEventListener('beforeunload', () => { flushPending(); });
+
+    window.addEventListener('storage', (event) => {
+      if (!event.key || event.newValue == null) return;
+      if (![PLATFORM_KEY, LICENCIAS_KEY, AUDIT_KEY, META_KEY].includes(event.key)) return;
+      if (typeof refreshAllViewsFromData === 'function') {
+        refreshAllViewsFromData({ source: 'storage' });
+      }
+    });
+
+    document.addEventListener('focusin', () => {
+      if (Date.now() < deferRemoteUntil && !isUserEditing()) {
+        pullRemoteIfNewer('deferred');
+      }
+    });
+  }
+
+  async function onNetworkOnline() {
+    if (!(await DataService.isOnline())) return;
+    supabaseReady = true;
+    if (pendingOfflinePush || hasPendingPush()) {
+      await flushPending();
+    } else {
+      await pullRemoteIfNewer('online');
+    }
+    startLiveSync();
   }
 
   async function bootstrapFromSupabase() {
@@ -117,6 +316,7 @@ const PlatformSync = (() => {
       if (typeof showToast === 'function') {
         showToast('Sin conexión a Supabase — solo lectura desde caché local', 'error', 6000);
       }
+      bindLifecycleFlush();
       return { ok: false, reason: 'offline' };
     }
 
@@ -136,17 +336,14 @@ const PlatformSync = (() => {
       }
 
       if (payload) {
-        cacheLocally(payload);
-        if (typeof reloadAppDataFromStorage === 'function') reloadAppDataFromStorage();
-        if (payload.audit && typeof replaceAuditLog === 'function') {
-          replaceAuditLog(payload.audit);
-        }
+        applyRemotePayload(payload, null, 'bootstrap');
       }
 
       const remote = await DataService.loadPlatformState();
       const ts = remote?.updated_at || new Date().toISOString();
       setMeta({ updatedAt: ts, source: 'supabase' });
       updateSyncIndicator('synced', ts);
+      startLiveSync();
       return { ok: true, source: 'supabase' };
     } catch (err) {
       supabaseReady = false;
@@ -157,6 +354,7 @@ const PlatformSync = (() => {
           showToast('Ejecutá supabase/platform_state.sql en Supabase', 'error', 9000);
         }
       }
+      bindLifecycleFlush();
       return { ok: false, reason: err.message };
     }
   }
@@ -185,8 +383,11 @@ const PlatformSync = (() => {
     syncOnStartup: bootstrapFromSupabase,
     schedulePush,
     pushNow,
+    flushPending,
     persist,
     isSupabaseReady,
+    onNetworkOnline,
+    pullRemoteIfNewer,
     updateSyncIndicator,
   };
 })();

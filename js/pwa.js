@@ -150,8 +150,12 @@ const PWAModule = (() => {
     if (!banner) return;
 
     const sync = () => {
-      if (navigator.onLine) hide(banner);
-      else show(banner);
+      if (navigator.onLine) {
+        hide(banner);
+        if (typeof PlatformSync !== 'undefined') PlatformSync.onNetworkOnline();
+      } else {
+        show(banner);
+      }
     };
 
     window.addEventListener('online', sync);
